@@ -39,7 +39,7 @@ namespace SeedApi.Services
         return (null, null);
 
       var accessToken = GenerateJwtToken(user);
-      var refreshToken = GenerateRefreshToken();
+      var refreshToken = GenerateRefreshToken(user);
 
       user.RefreshToken = new RefreshToken
       {
@@ -88,11 +88,11 @@ namespace SeedApi.Services
       return HashPassword(password) == storedHash;
     }
 
-    private static string GenerateRefreshToken()
+    private static string GenerateRefreshToken(User user)
     {
-      var byteArray = new byte[32];
+      var byteArray = new byte[64];
       RandomNumberGenerator.Fill(byteArray);
-      return Convert.ToBase64String(byteArray);
+      return string.Concat(user.Id, Convert.ToBase64String(byteArray));
     }
 
     public async Task<string?> RefreshAccessTokenAsync(string refreshToken)
