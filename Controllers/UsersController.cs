@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SeedApi.Middlewares;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
 using SeedApi.Services;
@@ -49,6 +50,7 @@ namespace SeedApi.Controllers
       {
         Id = user.Id.ToString(),
         Name = user.Name,
+        Role = user.Role,
         Email = user.Email,
         Links =
         [

@@ -1,3 +1,5 @@
+using SeedApi.Models;
+
 namespace SeedApi.Responses.Users
 {
   public record UserResponse
@@ -5,6 +7,7 @@ namespace SeedApi.Responses.Users
     public string Id { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string Email { get; init; } = null!;
+    public UserRole Role { get; init; }
     public Link[] Links { get; init; } = null!;
   }
 }

@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace SeedApi.Requests.Auth
 {
@@ -14,11 +13,6 @@ namespace SeedApi.Requests.Auth
     [EmailAddress(ErrorMessage = "O formato do e-mail é inválido.")]
     [Description("O e-mail do usuário.")]
     public string Email { get; init; } = null!;
-
-    [Required(ErrorMessage = "O formato da data de nascimento é inválido.")]
-    [JsonPropertyName("birth_date")]
-    [Description("A data de nascimento do usuário.")]
-    public DateOnly BirthDate { get; init; }
 
     [Required(ErrorMessage = "A senha é obrigatória.")]
     [MinLength(6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres.")]

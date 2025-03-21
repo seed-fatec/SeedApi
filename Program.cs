@@ -20,6 +20,11 @@ builder.Services.Configure<JwtSettings>(
   builder.Configuration.GetSection("JwtSettings")
 );
 
+var adminKey = builder.Configuration["AdminKey"]
+  ?? throw new Exception("Failed to load AdminKey from environment.");
+
+builder.Services.AddSingleton(new AdminSettings { Secret = adminKey });
+
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
   ?? throw new Exception("Failed to load JwtSettings from environment.");
 

@@ -14,17 +14,19 @@ namespace SeedApi.Services
     private readonly ApplicationDbContext _context = context;
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
-    public async Task<bool> RegisterAsync(string name, string email, DateOnly birthDate, string password)
+    public async Task<bool> RegisterAsync(string name, string email, string password, UserRole role)
     {
-      var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-      if (existingUser != null) return false;
+      var userExists = await _context.Users.AnyAsync(u => u.Email == email);
+
+      if (userExists)
+        return false;
 
       var newUser = new User
       {
         Name = name,
         Email = email,
-        BirthDate = birthDate,
         PasswordHash = HashPassword(password),
+        Role = role
       };
 
       _context.Users.Add(newUser);
@@ -32,9 +34,9 @@ namespace SeedApi.Services
       return true;
     }
 
-    public async Task<(string? accessToken, string? refreshToken)> AuthenticateAsync(string email, string password)
+    public async Task<(string? accessToken, string? refreshToken)> AuthenticateAsync(string email, string password, UserRole role)
     {
-      var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == email);
+      var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == email && u.Role == role);
       if (user == null || !VerifyPassword(password, user.PasswordHash))
         return (null, null);
 
@@ -60,7 +62,8 @@ namespace SeedApi.Services
 
       var claims = new List<Claim>
             {
-              new ("UserId", user.Id.ToString())
+              new ("UserId", user.Id.ToString()),
+              new (ClaimTypes.Role, user.Role.ToString())
             };
 
       var tokenDescriptor = new SecurityTokenDescriptor

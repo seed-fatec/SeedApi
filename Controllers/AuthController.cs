@@ -2,20 +2,24 @@ using Microsoft.AspNetCore.Mvc;
 using SeedApi.Requests.Auth;
 using SeedApi.Responses;
 using SeedApi.Responses.Auth;
+using SeedApi.Models;
 using SeedApi.Services;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace SeedApi.Controllers
 {
   [ApiController]
-  [Route("api/auth")]
-  public sealed class AuthController(AuthService authService) : ControllerBase
+  [Route("api")]
+  public sealed class AuthController(AuthService authService, AdminSettings adminSettings) : ControllerBase
   {
     private readonly AuthService _authService = authService;
+    private readonly AdminSettings _adminSettings = adminSettings;
 
-    [HttpPost("register", Name = "Register")]
+    [HttpPost("student/register", Name = "RegisterStudent")]
     [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> RegisterStudent([FromBody] RegisterRequest request)
     {
       if (!ModelState.IsValid)
       {
@@ -24,13 +28,13 @@ namespace SeedApi.Controllers
           Message = "Dados de entrada inválidos.",
           Links =
           [
-            new Link { Rel = "self", Href = Url.Link(nameof(Register), new {}) },
-              new Link { Rel = "login", Href = Url.Link(nameof(Login), new {}) }
+            new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
+            new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
           ]
         });
       }
 
-      var success = await _authService.RegisterAsync(request.Name, request.Email, request.BirthDate, request.Password);
+      var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Student);
 
       if (!success)
       {
@@ -39,28 +43,83 @@ namespace SeedApi.Controllers
           Message = "Usuário já existe.",
           Links =
           [
-            new Link { Rel = "self", Href = Url.Link(nameof(Register), new {}) },
-              new Link { Rel = "login", Href = Url.Link(nameof(Login), new {}) }
+            new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
+            new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
           ]
         });
       }
 
-      return CreatedAtAction(nameof(Register), new RegisterResponse
+      return CreatedAtAction(nameof(RegisterStudent), new RegisterResponse
       {
-        Message = "Usuário registrado com sucesso.",
+        Message = "Estudante registrado com sucesso.",
+        Links =
+      [
+        new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
+        new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
+      ]
+      });
+    }
+
+    [HttpPost("teacher/register", Name = "RegisterTeacher")]
+    [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RegisterTeacher(
+      [FromHeader(Name = "X-Admin-Key")]
+      [Description("Chave de administrador do sistema.")]
+      [Required(ErrorMessage = "A chave de adminstrador é obrigatória.")]
+      string adminKey,
+      [FromBody] RegisterRequest request
+    )
+    {
+      if (adminKey != _adminSettings.Secret)
+      {
+        return Forbid();
+      }
+
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(new ErrorResponse
+        {
+          Message = "Dados de entrada inválidos.",
+          Links =
+          [
+            new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
+            new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
+          ]
+        });
+      }
+
+      var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Teacher);
+
+      if (!success)
+      {
+        return BadRequest(new ErrorResponse
+        {
+          Message = "Usuário já existe.",
+          Links =
+          [
+            new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
+            new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
+          ]
+        });
+      }
+
+      return CreatedAtAction(nameof(RegisterTeacher), new RegisterResponse
+      {
+        Message = "Professor registrado com sucesso.",
         Links =
         [
-          new Link { Rel = "self", Href = Url.Link(nameof(Register), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(Login), new {}) }
+          new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
+          new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
         ]
       });
     }
 
-    [HttpPost("login", Name = "Login")]
+    [HttpPost("student/login", Name = "LoginStudent")]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> LoginStudent([FromBody] LoginRequest request)
     {
       if (!ModelState.IsValid)
       {
@@ -69,13 +128,13 @@ namespace SeedApi.Controllers
           Message = "Dados de entrada inválidos",
           Links =
           [
-            new Link { Rel = "self", Href = Url.Link(nameof(Login), new {}) },
-              new Link { Rel = "register", Href = Url.Link(nameof(Register), new {}) }
+            new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
+            new Link { Rel = "register", Href = Url.Link(nameof(RegisterStudent), new {}) }
           ]
         });
       }
 
-      var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password);
+      var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Student);
 
       if (accessToken == null || refreshToken == null)
       {
@@ -84,8 +143,8 @@ namespace SeedApi.Controllers
           Message = "Credenciais inválidas.",
           Links =
           [
-            new Link { Rel = "self", Href = Url.Link(nameof(Login), new {}) },
-              new Link { Rel = "register", Href = Url.Link(nameof(Register), new {}) }
+            new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
+            new Link { Rel = "register", Href = Url.Link(nameof(RegisterStudent), new {}) }
           ]
         });
       }
@@ -96,14 +155,61 @@ namespace SeedApi.Controllers
         RefreshToken = refreshToken,
         Links =
         [
-          new Link { Rel = "self", Href = Url.Link(nameof(Login), new {}) },
+          new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
           new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
           new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
         ]
       });
     }
 
-    [HttpPost("refresh", Name = "Refresh")]
+    [HttpPost("teacher/login", Name = "LoginTeacher")]
+    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> LoginTeacher([FromBody] LoginRequest request)
+    {
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(new ErrorResponse
+        {
+          Message = "Dados de entrada inválidos",
+          Links =
+          [
+            new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
+            new Link { Rel = "register", Href = Url.Link(nameof(RegisterTeacher), new {}) }
+          ]
+        });
+      }
+
+      var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Teacher);
+
+      if (accessToken == null || refreshToken == null)
+      {
+        return Unauthorized(new ErrorResponse
+        {
+          Message = "Credenciais inválidas.",
+          Links =
+          [
+            new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
+            new Link { Rel = "register", Href = Url.Link(nameof(RegisterTeacher), new {}) }
+          ]
+        });
+      }
+
+      return Ok(new LoginResponse
+      {
+        AccessToken = accessToken,
+        RefreshToken = refreshToken,
+        Links =
+        [
+          new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
+          new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
+          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
+        ]
+      });
+    }
+
+    [HttpPost("token/refresh", Name = "Refresh")]
     [ProducesResponseType<RefreshResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
@@ -118,7 +224,6 @@ namespace SeedApi.Controllers
           Links =
           [
             new Link { Rel = "self", Href = Url.Link(nameof(Refresh), new { }) },
-            new Link { Rel = "login", Href = Url.Link(nameof(Login), new { }) }
           ]
         });
       }
@@ -159,7 +264,6 @@ namespace SeedApi.Controllers
         Links =
         [
           new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) },
-          new Link { Rel = "login", Href = Url.Link(nameof(Login), new { }) }
         ]
       });
     }

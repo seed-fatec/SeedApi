@@ -17,14 +17,21 @@ namespace SeedApi.Models
     [MaxLength(255)]
     public string Email { get; set; } = null!;
 
-    [Required]
-    [Column(TypeName = "DATE")]
     [DataType(DataType.Date)]
-    public DateOnly BirthDate { get; set; }
+    public DateOnly? BirthDate { get; set; } = null!;
 
     [Required]
     public string PasswordHash { get; set; } = null!;
 
     public RefreshToken? RefreshToken { get; set; }
+
+    [Required]
+    public UserRole Role { get; set; }
+  }
+
+  public enum UserRole
+  {
+    Student = 1,
+    Teacher
   }
 }
