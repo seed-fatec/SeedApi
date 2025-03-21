@@ -41,7 +41,7 @@ namespace SeedApi.Services
         return (null, null);
 
       var accessToken = GenerateJwtToken(user);
-      var refreshToken = GenerateRefreshToken(user);
+      var refreshToken = GenerateJwtRefreshToken(user);
 
       user.RefreshToken = new RefreshToken
       {
@@ -55,6 +55,31 @@ namespace SeedApi.Services
       return (accessToken, refreshToken);
     }
 
+    private string GenerateJwtRefreshToken(User user)
+    {
+      var tokenHandler = new JwtSecurityTokenHandler();
+      var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+
+      var claims = new List<Claim>
+        {
+          new ("UserId", user.Id.ToString()),
+          new ("TokenType", "RefreshToken")
+        };
+
+      var tokenDescriptor = new SecurityTokenDescriptor
+      {
+        Subject = new ClaimsIdentity(claims),
+        Expires = DateTime.UtcNow.AddDays(7),
+        Issuer = _jwtSettings.Issuer,
+        Audience = _jwtSettings.Audience,
+        SigningCredentials = new SigningCredentials(
+        new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+      };
+
+      var token = tokenHandler.CreateToken(tokenDescriptor);
+      return tokenHandler.WriteToken(token);
+    }
+
     private string GenerateJwtToken(User user)
     {
       var tokenHandler = new JwtSecurityTokenHandler();
@@ -63,6 +88,7 @@ namespace SeedApi.Services
       var claims = new List<Claim>
             {
               new ("UserId", user.Id.ToString()),
+              new ("TokenType", "AccessToken"),
               new (ClaimTypes.Role, user.Role.ToString())
             };
 
@@ -89,13 +115,6 @@ namespace SeedApi.Services
     private static bool VerifyPassword(string password, string storedHash)
     {
       return HashPassword(password) == storedHash;
-    }
-
-    private static string GenerateRefreshToken(User user)
-    {
-      var byteArray = new byte[64];
-      RandomNumberGenerator.Fill(byteArray);
-      return string.Concat(user.Id, Convert.ToBase64String(byteArray));
     }
 
     public async Task<string?> RefreshAccessTokenAsync(string refreshToken)
