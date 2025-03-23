@@ -10,12 +10,12 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// load database settings from environment
+// Load database settings from environment
 builder.Services.Configure<DatabaseSettings>(
   builder.Configuration.GetSection("DatabaseSettings")
 );
 
-// load jwt settings from environment
+// Load JWT settings from environment
 builder.Services.Configure<JwtSettings>(
   builder.Configuration.GetSection("JwtSettings")
 );
@@ -54,7 +54,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
   options.UseMySql(databaseSettings.ConnectionString, ServerVersion.AutoDetect(databaseSettings.ConnectionString))
 );
 
-// add services
+// Add services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 
@@ -71,7 +71,20 @@ builder.Services.AddOpenApi(options =>
   options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy("AllowSeedApp", policy =>
+  {
+    policy.WithOrigins("http://localhost:5173")
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials();
+  });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowSeedApp");
 
 if (app.Environment.IsDevelopment())
 {
@@ -81,9 +94,9 @@ if (app.Environment.IsDevelopment())
     options.Title = "Seed API Docs";
     options.Theme = ScalarTheme.BluePlanet;
     options.WithHttpBearerAuthentication(bearer =>
-      {
-        bearer.Token = "your-bearer-token";
-      });
+    {
+      bearer.Token = "your-bearer-token";
+    });
   });
 }
 
