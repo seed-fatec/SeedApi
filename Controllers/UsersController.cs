@@ -21,6 +21,7 @@ namespace SeedApi.Controllers
     public async Task<IActionResult> GetCurrentUser()
     {
       var userId = User.FindFirstValue("UserId");
+
       if (userId == null)
       {
         return Unauthorized(new ErrorResponse
@@ -34,11 +35,12 @@ namespace SeedApi.Controllers
       }
 
       var user = await _userService.GetUserByIdAsync(int.Parse(userId));
+
       if (user == null)
       {
         return Unauthorized(new ErrorResponse
         {
-          Message = "Usuário não encontrado.",
+          Message = "Usuário não autorizado.",
           Links =
           [
             new Link { Rel = "self", Href = Url.Link(nameof(GetCurrentUser), new { }) }

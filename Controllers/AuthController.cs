@@ -18,28 +18,15 @@ namespace SeedApi.Controllers
 
     [HttpPost("student/register", Name = "RegisterStudent")]
     [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> RegisterStudent([FromBody] RegisterRequest request)
     {
-      if (!ModelState.IsValid)
-      {
-        return UnprocessableEntity(new ErrorResponse
-        {
-          Message = "Dados de entrada inválidos.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
-          ]
-        });
-      }
-
       var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Student);
 
       if (!success)
       {
-        return BadRequest(new ErrorResponse
+        return Conflict(new ErrorResponse
         {
           Message = "Usuário já existe.",
           Links =
@@ -63,8 +50,9 @@ namespace SeedApi.Controllers
 
     [HttpPost("teacher/register", Name = "RegisterTeacher")]
     [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> RegisterTeacher(
       [FromHeader(Name = "X-Admin-Key")]
       [Description("Chave de administrador do sistema.")]
@@ -78,24 +66,11 @@ namespace SeedApi.Controllers
         return Forbid();
       }
 
-      if (!ModelState.IsValid)
-      {
-        return UnprocessableEntity(new ErrorResponse
-        {
-          Message = "Dados de entrada inválidos.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
-          ]
-        });
-      }
-
       var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Teacher);
 
       if (!success)
       {
-        return BadRequest(new ErrorResponse
+        return Conflict(new ErrorResponse
         {
           Message = "Usuário já existe.",
           Links =
@@ -119,24 +94,10 @@ namespace SeedApi.Controllers
 
     [HttpPost("student/login", Name = "LoginStudent")]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> LoginStudent([FromBody] LoginRequest request)
     {
-      if (!ModelState.IsValid)
-      {
-        return UnprocessableEntity(new ErrorResponse
-        {
-          Message = "Dados de entrada inválidos",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
-            new Link { Rel = "register", Href = Url.Link(nameof(RegisterStudent), new {}) }
-          ]
-        });
-      }
-
       var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Student);
 
       if (accessToken == null || refreshToken == null)
@@ -167,24 +128,10 @@ namespace SeedApi.Controllers
 
     [HttpPost("teacher/login", Name = "LoginTeacher")]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> LoginTeacher([FromBody] LoginRequest request)
     {
-      if (!ModelState.IsValid)
-      {
-        return UnprocessableEntity(new ErrorResponse
-        {
-          Message = "Dados de entrada inválidos",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
-            new Link { Rel = "register", Href = Url.Link(nameof(RegisterTeacher), new {}) }
-          ]
-        });
-      }
-
       var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Teacher);
 
       if (accessToken == null || refreshToken == null)
@@ -215,6 +162,7 @@ namespace SeedApi.Controllers
 
     [HttpPost("token/refresh", Name = "Refresh")]
     [ProducesResponseType<RefreshResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<RefreshResponse>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
     {
@@ -245,16 +193,17 @@ namespace SeedApi.Controllers
 
     [HttpPost("logout", Name = "Logout")]
     [ProducesResponseType<LogoutResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
     {
       var success = await _authService.RevokeRefreshTokenAsync(request.RefreshToken);
 
       if (!success)
       {
-        return BadRequest(new ErrorResponse
+        return Unauthorized(new ErrorResponse
         {
-          Message = "Falha ao revogar o Refresh Token.",
+          Message = "Refresh token inválido.",
           Links =
           [
             new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) }
