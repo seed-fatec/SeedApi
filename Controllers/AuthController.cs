@@ -19,11 +19,12 @@ namespace SeedApi.Controllers
     [HttpPost("student/register", Name = "RegisterStudent")]
     [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> RegisterStudent([FromBody] RegisterRequest request)
     {
       if (!ModelState.IsValid)
       {
-        return BadRequest(new ErrorResponse
+        return UnprocessableEntity(new ErrorResponse
         {
           Message = "Dados de entrada inválidos.",
           Links =
@@ -63,6 +64,7 @@ namespace SeedApi.Controllers
     [HttpPost("teacher/register", Name = "RegisterTeacher")]
     [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> RegisterTeacher(
       [FromHeader(Name = "X-Admin-Key")]
       [Description("Chave de administrador do sistema.")]
@@ -78,7 +80,7 @@ namespace SeedApi.Controllers
 
       if (!ModelState.IsValid)
       {
-        return BadRequest(new ErrorResponse
+        return UnprocessableEntity(new ErrorResponse
         {
           Message = "Dados de entrada inválidos.",
           Links =
@@ -119,11 +121,12 @@ namespace SeedApi.Controllers
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> LoginStudent([FromBody] LoginRequest request)
     {
       if (!ModelState.IsValid)
       {
-        return BadRequest(new ErrorResponse
+        return UnprocessableEntity(new ErrorResponse
         {
           Message = "Dados de entrada inválidos",
           Links =
@@ -166,11 +169,12 @@ namespace SeedApi.Controllers
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> LoginTeacher([FromBody] LoginRequest request)
     {
       if (!ModelState.IsValid)
       {
-        return BadRequest(new ErrorResponse
+        return UnprocessableEntity(new ErrorResponse
         {
           Message = "Dados de entrada inválidos",
           Links =
