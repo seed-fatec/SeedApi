@@ -51,6 +51,7 @@ namespace SeedApi.Controllers
         Id = user.Id.ToString(),
         Name = user.Name,
         Role = user.Role,
+        BirthDate = user.BirthDate,
         Email = user.Email,
         Links =
         [
