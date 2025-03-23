@@ -719,6 +719,11 @@
           "role": {
             "$ref": "#/components/schemas/UserRole"
           },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
           "links": {
             "type": "array",
             "items": {
