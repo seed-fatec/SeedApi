@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using SeedApi.Models;
+using SeedApi.Models.Entities;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace SeedApi.Middlewares;

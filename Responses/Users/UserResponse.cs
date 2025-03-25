@@ -1,4 +1,4 @@
-using SeedApi.Models;
+using SeedApi.Models.Entities;
 using System.Text.Json.Serialization;
 
 namespace SeedApi.Responses.Users

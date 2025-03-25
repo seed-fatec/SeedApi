@@ -1,4 +1,4 @@
-namespace SeedApi.Models
+namespace SeedApi.Models.Config
 {
   public class AdminSettings
   {

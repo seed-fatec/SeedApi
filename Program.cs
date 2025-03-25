@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using SeedApi.Infrastructure.OpenApi;
 using SeedApi.Models;
+using SeedApi.Models.Config;
 using SeedApi.Services;
 using System.Text;
 using System.Text.Json;

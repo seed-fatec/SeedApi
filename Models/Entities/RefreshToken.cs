@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SeedApi.Models
+namespace SeedApi.Models.Entities
 {
   public class RefreshToken
   {
