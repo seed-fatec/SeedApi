@@ -1,7 +1,6 @@
-namespace SeedApi.Models.Config
+namespace SeedApi.Models.Config;
+
+public class DatabaseSettings
 {
-  public class DatabaseSettings
-  {
-    public string ConnectionString { get; set; } = null!;
-  }
+  public string ConnectionString { get; set; } = null!;
 }

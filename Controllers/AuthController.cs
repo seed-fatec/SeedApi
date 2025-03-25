@@ -8,218 +8,217 @@ using SeedApi.Services;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
-namespace SeedApi.Controllers
+namespace SeedApi.Controllers;
+
+[ApiController]
+[Route("api")]
+public sealed class AuthController(AuthService authService, AdminSettings adminSettings) : ControllerBase
 {
-  [ApiController]
-  [Route("api")]
-  public sealed class AuthController(AuthService authService, AdminSettings adminSettings) : ControllerBase
+  private readonly AuthService _authService = authService;
+  private readonly AdminSettings _adminSettings = adminSettings;
+
+  [HttpPost("student/register", Name = "RegisterStudent")]
+  [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
+  public async Task<IActionResult> RegisterStudent([FromBody] RegisterRequest request)
   {
-    private readonly AuthService _authService = authService;
-    private readonly AdminSettings _adminSettings = adminSettings;
+    var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Student);
 
-    [HttpPost("student/register", Name = "RegisterStudent")]
-    [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> RegisterStudent([FromBody] RegisterRequest request)
+    if (!success)
     {
-      var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Student);
-
-      if (!success)
+      return Conflict(new ErrorResponse
       {
-        return Conflict(new ErrorResponse
-        {
-          Message = "Usuário já existe.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
-          ]
-        });
-      }
-
-      return CreatedAtAction(nameof(RegisterStudent), new RegisterResponse
-      {
-        Message = "Estudante registrado com sucesso.",
+        Message = "Usuário já existe.",
         Links =
-      [
-        new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
-        new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
-      ]
+        [
+          new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
+            new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
+        ]
       });
     }
 
-    [HttpPost("teacher/register", Name = "RegisterTeacher")]
-    [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> RegisterTeacher(
-      [FromHeader(Name = "X-Admin-Key")]
+    return CreatedAtAction(nameof(RegisterStudent), new RegisterResponse
+    {
+      Message = "Estudante registrado com sucesso.",
+      Links =
+    [
+      new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
+        new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
+    ]
+    });
+  }
+
+  [HttpPost("teacher/register", Name = "RegisterTeacher")]
+  [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
+  [ProducesResponseType(StatusCodes.Status403Forbidden)]
+  public async Task<IActionResult> RegisterTeacher(
+    [FromHeader(Name = "X-Admin-Key")]
       [Description("Chave de administrador do sistema.")]
       [Required(ErrorMessage = "A chave de adminstrador é obrigatória.")]
       string adminKey,
-      [FromBody] RegisterRequest request
-    )
+    [FromBody] RegisterRequest request
+  )
+  {
+    if (adminKey != _adminSettings.Secret)
     {
-      if (adminKey != _adminSettings.Secret)
-      {
-        return Forbid();
-      }
+      return Forbid();
+    }
 
-      var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Teacher);
+    var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Teacher);
 
-      if (!success)
+    if (!success)
+    {
+      return Conflict(new ErrorResponse
       {
-        return Conflict(new ErrorResponse
-        {
-          Message = "Usuário já existe.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
-          ]
-        });
-      }
-
-      return CreatedAtAction(nameof(RegisterTeacher), new RegisterResponse
-      {
-        Message = "Professor registrado com sucesso.",
+        Message = "Usuário já existe.",
         Links =
         [
           new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
-          new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
+            new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
         ]
       });
     }
 
-    [HttpPost("student/login", Name = "LoginStudent")]
-    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> LoginStudent([FromBody] LoginRequest request)
+    return CreatedAtAction(nameof(RegisterTeacher), new RegisterResponse
     {
-      var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Student);
+      Message = "Professor registrado com sucesso.",
+      Links =
+      [
+        new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
+          new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
+      ]
+    });
+  }
 
-      if (accessToken == null || refreshToken == null)
-      {
-        return Unauthorized(new ErrorResponse
-        {
-          Message = "Credenciais inválidas.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
-            new Link { Rel = "register", Href = Url.Link(nameof(RegisterStudent), new {}) }
-          ]
-        });
-      }
+  [HttpPost("student/login", Name = "LoginStudent")]
+  [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> LoginStudent([FromBody] LoginRequest request)
+  {
+    var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Student);
 
-      return Ok(new LoginResponse
+    if (accessToken == null || refreshToken == null)
+    {
+      return Unauthorized(new ErrorResponse
       {
-        AccessToken = accessToken,
-        RefreshToken = refreshToken,
+        Message = "Credenciais inválidas.",
         Links =
         [
           new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
-          new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
-          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
+            new Link { Rel = "register", Href = Url.Link(nameof(RegisterStudent), new {}) }
         ]
       });
     }
 
-    [HttpPost("teacher/login", Name = "LoginTeacher")]
-    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> LoginTeacher([FromBody] LoginRequest request)
+    return Ok(new LoginResponse
     {
-      var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Teacher);
+      AccessToken = accessToken,
+      RefreshToken = refreshToken,
+      Links =
+      [
+        new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
+          new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
+          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
+        ]
+    });
+  }
 
-      if (accessToken == null || refreshToken == null)
-      {
-        return Unauthorized(new ErrorResponse
-        {
-          Message = "Credenciais inválidas.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
-            new Link { Rel = "register", Href = Url.Link(nameof(RegisterTeacher), new {}) }
-          ]
-        });
-      }
+  [HttpPost("teacher/login", Name = "LoginTeacher")]
+  [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> LoginTeacher([FromBody] LoginRequest request)
+  {
+    var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Teacher);
 
-      return Ok(new LoginResponse
+    if (accessToken == null || refreshToken == null)
+    {
+      return Unauthorized(new ErrorResponse
       {
-        AccessToken = accessToken,
-        RefreshToken = refreshToken,
+        Message = "Credenciais inválidas.",
         Links =
         [
           new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
+            new Link { Rel = "register", Href = Url.Link(nameof(RegisterTeacher), new {}) }
+        ]
+      });
+    }
+
+    return Ok(new LoginResponse
+    {
+      AccessToken = accessToken,
+      RefreshToken = refreshToken,
+      Links =
+      [
+        new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
           new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
           new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
         ]
-      });
-    }
+    });
+  }
 
-    [HttpPost("token/refresh", Name = "Refresh")]
-    [ProducesResponseType<RefreshResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<RefreshResponse>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+  [HttpPost("token/refresh", Name = "Refresh")]
+  [ProducesResponseType<RefreshResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<RefreshResponse>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+  {
+    var newAccessToken = await _authService.RefreshAccessTokenAsync(request.RefreshToken);
+
+    if (newAccessToken == null)
     {
-      var newAccessToken = await _authService.RefreshAccessTokenAsync(request.RefreshToken);
-
-      if (newAccessToken == null)
+      return Unauthorized(new ErrorResponse
       {
-        return Unauthorized(new ErrorResponse
-        {
-          Message = "Refresh Token inválido ou expirado.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(Refresh), new { }) },
-          ]
-        });
-      }
-
-      return Ok(new RefreshResponse
-      {
-        AccessToken = newAccessToken,
+        Message = "Refresh Token inválido ou expirado.",
         Links =
         [
           new Link { Rel = "self", Href = Url.Link(nameof(Refresh), new { }) },
-          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new { }) }
-        ]
+          ]
       });
     }
 
-    [HttpPost("logout", Name = "Logout")]
-    [ProducesResponseType<LogoutResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
+    return Ok(new RefreshResponse
     {
-      var success = await _authService.RevokeRefreshTokenAsync(request.RefreshToken);
+      AccessToken = newAccessToken,
+      Links =
+      [
+        new Link { Rel = "self", Href = Url.Link(nameof(Refresh), new { }) },
+          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new { }) }
+      ]
+    });
+  }
 
-      if (!success)
-      {
-        return Unauthorized(new ErrorResponse
-        {
-          Message = "Refresh token inválido.",
-          Links =
-          [
-            new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) }
-          ]
-        });
-      }
+  [HttpPost("logout", Name = "Logout")]
+  [ProducesResponseType<LogoutResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> Logout([FromBody] RefreshRequest request)
+  {
+    var success = await _authService.RevokeRefreshTokenAsync(request.RefreshToken);
 
-      return Ok(new LogoutResponse
+    if (!success)
+    {
+      return Unauthorized(new ErrorResponse
       {
-        Message = "Logout realizado com sucesso.",
+        Message = "Refresh token inválido.",
         Links =
         [
-          new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) },
+          new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) }
         ]
       });
     }
+
+    return Ok(new LogoutResponse
+    {
+      Message = "Logout realizado com sucesso.",
+      Links =
+      [
+        new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) },
+        ]
+    });
   }
 }

@@ -1,8 +1,7 @@
-namespace SeedApi.Responses
+namespace SeedApi.Responses;
+
+public record Link
 {
-  public record Link
-  {
-    public required string Rel { get; init; }
-    public string? Href { get; init; }
-  }
+  public required string Rel { get; init; }
+  public string? Href { get; init; }
 }

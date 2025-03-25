@@ -9,141 +9,140 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace SeedApi.Services
+namespace SeedApi.Services;
+
+public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext context)
 {
-  public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext context)
+  private readonly ApplicationDbContext _context = context;
+  private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+
+  public async Task<bool> RegisterAsync(string name, string email, string password, UserRole role)
   {
-    private readonly ApplicationDbContext _context = context;
-    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
+    var userExists = await _context.Users.AnyAsync(u => u.Email == email);
 
-    public async Task<bool> RegisterAsync(string name, string email, string password, UserRole role)
+    if (userExists)
+      return false;
+
+    var newUser = new User
     {
-      var userExists = await _context.Users.AnyAsync(u => u.Email == email);
+      Name = name,
+      Email = email,
+      PasswordHash = HashPassword(password),
+      Role = role
+    };
 
-      if (userExists)
-        return false;
+    _context.Users.Add(newUser);
+    await _context.SaveChangesAsync();
+    return true;
+  }
 
-      var newUser = new User
-      {
-        Name = name,
-        Email = email,
-        PasswordHash = HashPassword(password),
-        Role = role
-      };
+  public async Task<(string? accessToken, string? refreshToken)> AuthenticateAsync(string email, string password, UserRole role)
+  {
+    var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == email && u.Role == role);
+    if (user == null || !VerifyPassword(password, user.PasswordHash))
+      return (null, null);
 
-      _context.Users.Add(newUser);
-      await _context.SaveChangesAsync();
-      return true;
-    }
+    var accessToken = GenerateJwtToken(user);
+    var refreshToken = GenerateJwtRefreshToken(user);
 
-    public async Task<(string? accessToken, string? refreshToken)> AuthenticateAsync(string email, string password, UserRole role)
+    user.RefreshToken = new RefreshToken
     {
-      var user = await _context.Users.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == email && u.Role == role);
-      if (user == null || !VerifyPassword(password, user.PasswordHash))
-        return (null, null);
+      Token = refreshToken,
+      ExpiryTime = DateTime.UtcNow.AddDays(7)
+    };
 
-      var accessToken = GenerateJwtToken(user);
-      var refreshToken = GenerateJwtRefreshToken(user);
+    _context.Users.Update(user);
+    await _context.SaveChangesAsync();
 
-      user.RefreshToken = new RefreshToken
-      {
-        Token = refreshToken,
-        ExpiryTime = DateTime.UtcNow.AddDays(7)
-      };
+    return (accessToken, refreshToken);
+  }
 
-      _context.Users.Update(user);
-      await _context.SaveChangesAsync();
+  private string GenerateJwtRefreshToken(User user)
+  {
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
 
-      return (accessToken, refreshToken);
-    }
-
-    private string GenerateJwtRefreshToken(User user)
-    {
-      var tokenHandler = new JwtSecurityTokenHandler();
-      var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
-
-      var claims = new List<Claim>
+    var claims = new List<Claim>
         {
           new ("UserId", user.Id.ToString()),
           new ("TokenType", "RefreshToken")
         };
 
-      var tokenDescriptor = new SecurityTokenDescriptor
-      {
-        Subject = new ClaimsIdentity(claims),
-        Expires = DateTime.UtcNow.AddDays(7),
-        Issuer = _jwtSettings.Issuer,
-        Audience = _jwtSettings.Audience,
-        SigningCredentials = new SigningCredentials(
-        new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-      };
-
-      var token = tokenHandler.CreateToken(tokenDescriptor);
-      return tokenHandler.WriteToken(token);
-    }
-
-    private string GenerateJwtToken(User user)
+    var tokenDescriptor = new SecurityTokenDescriptor
     {
-      var tokenHandler = new JwtSecurityTokenHandler();
-      var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+      Subject = new ClaimsIdentity(claims),
+      Expires = DateTime.UtcNow.AddDays(7),
+      Issuer = _jwtSettings.Issuer,
+      Audience = _jwtSettings.Audience,
+      SigningCredentials = new SigningCredentials(
+      new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+    };
 
-      var claims = new List<Claim>
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+    return tokenHandler.WriteToken(token);
+  }
+
+  private string GenerateJwtToken(User user)
+  {
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+
+    var claims = new List<Claim>
             {
               new ("UserId", user.Id.ToString()),
               new ("TokenType", "AccessToken"),
               new (ClaimTypes.Role, user.Role.ToString())
             };
 
-      var tokenDescriptor = new SecurityTokenDescriptor
-      {
-        Subject = new ClaimsIdentity(claims),
-        Expires = DateTime.UtcNow.AddHours(1),
-        Issuer = _jwtSettings.Issuer,
-        Audience = _jwtSettings.Audience,
-        SigningCredentials = new SigningCredentials(
-          new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-      };
-
-      var token = tokenHandler.CreateToken(tokenDescriptor);
-      return tokenHandler.WriteToken(token);
-    }
-
-    private static string HashPassword(string password)
+    var tokenDescriptor = new SecurityTokenDescriptor
     {
-      var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-      return Convert.ToBase64String(hashedBytes);
-    }
+      Subject = new ClaimsIdentity(claims),
+      Expires = DateTime.UtcNow.AddHours(1),
+      Issuer = _jwtSettings.Issuer,
+      Audience = _jwtSettings.Audience,
+      SigningCredentials = new SigningCredentials(
+        new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+    };
 
-    private static bool VerifyPassword(string password, string storedHash)
-    {
-      return HashPassword(password) == storedHash;
-    }
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+    return tokenHandler.WriteToken(token);
+  }
 
-    public async Task<string?> RefreshAccessTokenAsync(string refreshToken)
-    {
-      var user = await _context.Users
-        .Include(u => u.RefreshToken)
-        .FirstOrDefaultAsync(u => u.RefreshToken != null && u.RefreshToken.Token == refreshToken);
+  private static string HashPassword(string password)
+  {
+    var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+    return Convert.ToBase64String(hashedBytes);
+  }
 
-      if (user == null || user.RefreshToken == null || user.RefreshToken.ExpiryTime <= DateTime.UtcNow)
-        return null;
+  private static bool VerifyPassword(string password, string storedHash)
+  {
+    return HashPassword(password) == storedHash;
+  }
 
-      return GenerateJwtToken(user);
-    }
+  public async Task<string?> RefreshAccessTokenAsync(string refreshToken)
+  {
+    var user = await _context.Users
+      .Include(u => u.RefreshToken)
+      .FirstOrDefaultAsync(u => u.RefreshToken != null && u.RefreshToken.Token == refreshToken);
 
-    public async Task<bool> RevokeRefreshTokenAsync(string refreshToken)
-    {
-      var user = await _context.Users
-        .Include(u => u.RefreshToken)
-        .FirstOrDefaultAsync(u => u.RefreshToken != null && u.RefreshToken.Token == refreshToken);
+    if (user == null || user.RefreshToken == null || user.RefreshToken.ExpiryTime <= DateTime.UtcNow)
+      return null;
 
-      if (user == null)
-        return false;
+    return GenerateJwtToken(user);
+  }
 
-      user.RefreshToken = null;
-      _context.Users.Update(user);
-      await _context.SaveChangesAsync();
-      return true;
-    }
+  public async Task<bool> RevokeRefreshTokenAsync(string refreshToken)
+  {
+    var user = await _context.Users
+      .Include(u => u.RefreshToken)
+      .FirstOrDefaultAsync(u => u.RefreshToken != null && u.RefreshToken.Token == refreshToken);
+
+    if (user == null)
+      return false;
+
+    user.RefreshToken = null;
+    _context.Users.Update(user);
+    await _context.SaveChangesAsync();
+    return true;
   }
 }

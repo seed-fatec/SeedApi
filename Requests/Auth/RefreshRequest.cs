@@ -2,13 +2,12 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace SeedApi.Requests.Auth
+namespace SeedApi.Requests.Auth;
+
+public record RefreshRequest
 {
-  public record RefreshRequest
-  {
-    [Required(ErrorMessage = "O refresh token é obrigatório.")]
-    [JsonPropertyName("refresh_token")]
-    [Description("O token de atualização.")]
-    public string RefreshToken { get; init; } = null!;
-  };
-}
+  [Required(ErrorMessage = "O refresh token é obrigatório.")]
+  [JsonPropertyName("refresh_token")]
+  [Description("O token de atualização.")]
+  public string RefreshToken { get; init; } = null!;
+};

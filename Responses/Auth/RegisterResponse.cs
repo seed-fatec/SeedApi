@@ -1,8 +1,7 @@
-namespace SeedApi.Responses.Auth
+namespace SeedApi.Responses.Auth;
+
+public record RegisterResponse
 {
-  public record RegisterResponse
-  {
-    public string Message { get; init; } = null!;
-    public Link[] Links { get; init; } = null!;
-  }
+  public string Message { get; init; } = null!;
+  public Link[] Links { get; init; } = null!;
 }
