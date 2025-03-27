@@ -9,5 +9,4 @@ public record LoginResponse
 
   [JsonPropertyName("refresh_token")]
   public string RefreshToken { get; init; } = null!;
-  public Link[] Links { get; init; } = null!;
 }

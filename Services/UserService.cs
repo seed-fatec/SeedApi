@@ -22,14 +22,7 @@ public class UserService(ApplicationDbContext context)
       .FirstOrDefaultAsync();
   }
 
-  public async Task<User?> GetUsersByRole(UserRole role)
-  {
-    return await _context.Users
-      .Where(u => u.Role == role)
-      .FirstOrDefaultAsync();
-  }
-
-  public async Task<bool> UpdateUser(int userId, UserUpdateRequest newUser)
+  public async Task<bool> UpdateUserAsync(int userId, UserUpdateRequest newUser)
   {
     var user = await _context.Users.FindAsync(userId);
 

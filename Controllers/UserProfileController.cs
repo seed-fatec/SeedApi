@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SeedApi.Models.DTOs;
 using SeedApi.Requests.Users;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
@@ -10,8 +9,8 @@ using System.Security.Claims;
 namespace SeedApi.Controllers;
 
 [ApiController]
-[Route("api/users")]
-public sealed class UsersController(UserService userService) : ControllerBase
+[Route("api/users/me")]
+public sealed class UserProfileController(UserService userService) : ControllerBase
 {
   private readonly UserService _userService = userService;
 
@@ -21,54 +20,50 @@ public sealed class UsersController(UserService userService) : ControllerBase
     return int.TryParse(userIdClaim, out var userId) ? userId : null;
   }
 
-  [HttpGet(Name = "GetUsers")]
+  [HttpGet(Name = "GetCurrentUser")]
   [Authorize]
-  [ProducesResponseType<UserCollectionResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<UserResponse>(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-  public async Task<IActionResult> GetUsers()
+  public async Task<IActionResult> GetCurrentUser()
   {
     var userId = GetUserId();
 
     if (userId == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
-    var users = await _userService.GetAllUsersAsync();
-    var safeUsers = users.Select(u => new PublicUserDTO
-    {
-      Id = u.Id,
-      Name = u.Name,
-      BirthDate = u.BirthDate
-    });
-
-    return Ok(new UserCollectionResponse
-    {
-      Users = [.. safeUsers]
-    });
-  }
-
-  [HttpGet("{id:int}", Name = "GetUser")]
-  [Authorize]
-  [ProducesResponseType<PublicUserResponse>(StatusCodes.Status200OK)]
-  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
-  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-  public async Task<IActionResult> GetUser(int id)
-  {
-    var userId = GetUserId();
-
-    if (userId == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
-
-    var user = await _userService.GetUserByIdAsync(id);
+    var user = await _userService.GetUserByIdAsync(userId.Value);
 
     if (user == null)
-      return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
-    return Ok(new PublicUserResponse
+    return Ok(new UserResponse
     {
       Id = user.Id,
       Name = user.Name,
       Role = user.Role,
       BirthDate = user.BirthDate,
+      Email = user.Email,
     });
+  }
+
+  [HttpPut(Name = "UpdateCurrentUser")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> UpdateCurrentUser([FromBody] UserUpdateRequest request)
+  {
+    var userId = GetUserId();
+
+    if (userId == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    bool success = await _userService.UpdateUserAsync(userId.Value, request);
+
+    if (!success)
+      return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
+
+    return NoContent();
   }
 }

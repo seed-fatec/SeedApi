@@ -1,14 +1,11 @@
-using SeedApi.Models.Entities;
 using System.Text.Json.Serialization;
 
-namespace SeedApi.Responses.Users;
+namespace SeedApi.Models.DTOs;
 
-public record UserResponse
+public record PublicUserDTO
 {
   public int Id { get; init; }
   public string Name { get; init; } = null!;
-  public string Email { get; init; } = null!;
-  public UserRole Role { get; init; }
 
   [JsonPropertyName("birth_date")]
   public DateOnly? BirthDate { get; init; }

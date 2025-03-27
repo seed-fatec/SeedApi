@@ -30,22 +30,12 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
       return Conflict(new ErrorResponse
       {
         Message = "Usuário já existe.",
-        Links =
-        [
-          new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
-        ]
       });
     }
 
     return CreatedAtAction(nameof(RegisterStudent), new RegisterResponse
     {
       Message = "Estudante registrado com sucesso.",
-      Links =
-    [
-      new Link { Rel = "self", Href = Url.Link(nameof(RegisterStudent), new {}) },
-        new Link { Rel = "login", Href = Url.Link(nameof(LoginStudent), new {}) }
-    ]
     });
   }
 
@@ -74,22 +64,12 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
       return Conflict(new ErrorResponse
       {
         Message = "Usuário já existe.",
-        Links =
-        [
-          new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
-            new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
-        ]
       });
     }
 
     return CreatedAtAction(nameof(RegisterTeacher), new RegisterResponse
     {
       Message = "Professor registrado com sucesso.",
-      Links =
-      [
-        new Link { Rel = "self", Href = Url.Link(nameof(RegisterTeacher), new {}) },
-          new Link { Rel = "login", Href = Url.Link(nameof(LoginTeacher), new {}) }
-      ]
     });
   }
 
@@ -106,11 +86,6 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
       return Unauthorized(new ErrorResponse
       {
         Message = "Credenciais inválidas.",
-        Links =
-        [
-          new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
-            new Link { Rel = "register", Href = Url.Link(nameof(RegisterStudent), new {}) }
-        ]
       });
     }
 
@@ -118,12 +93,6 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
     {
       AccessToken = accessToken,
       RefreshToken = refreshToken,
-      Links =
-      [
-        new Link { Rel = "self", Href = Url.Link(nameof(LoginStudent), new {}) },
-          new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
-          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
-        ]
     });
   }
 
@@ -140,11 +109,6 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
       return Unauthorized(new ErrorResponse
       {
         Message = "Credenciais inválidas.",
-        Links =
-        [
-          new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
-            new Link { Rel = "register", Href = Url.Link(nameof(RegisterTeacher), new {}) }
-        ]
       });
     }
 
@@ -152,12 +116,6 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
     {
       AccessToken = accessToken,
       RefreshToken = refreshToken,
-      Links =
-      [
-        new Link { Rel = "self", Href = Url.Link(nameof(LoginTeacher), new {}) },
-          new Link { Rel = "refresh", Href = Url.Link(nameof(Refresh), new {}) },
-          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new {}) },
-        ]
     });
   }
 
@@ -174,21 +132,12 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
       return Unauthorized(new ErrorResponse
       {
         Message = "Refresh Token inválido ou expirado.",
-        Links =
-        [
-          new Link { Rel = "self", Href = Url.Link(nameof(Refresh), new { }) },
-          ]
       });
     }
 
     return Ok(new RefreshResponse
     {
       AccessToken = newAccessToken,
-      Links =
-      [
-        new Link { Rel = "self", Href = Url.Link(nameof(Refresh), new { }) },
-          new Link { Rel = "logout", Href = Url.Link(nameof(Logout), new { }) }
-      ]
     });
   }
 
@@ -205,20 +154,12 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
       return Unauthorized(new ErrorResponse
       {
         Message = "Refresh token inválido.",
-        Links =
-        [
-          new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) }
-        ]
       });
     }
 
     return Ok(new LogoutResponse
     {
       Message = "Logout realizado com sucesso.",
-      Links =
-      [
-        new Link { Rel = "self", Href = Url.Link(nameof(Logout), new { }) },
-        ]
     });
   }
 }
