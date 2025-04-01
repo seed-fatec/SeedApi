@@ -59,7 +59,7 @@ public sealed class UserProfileController(UserService userService) : ControllerB
     if (userId == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
-    bool success = await _userService.UpdateUserAsync(userId.Value, request);
+    var success = await _userService.UpdateUserAsync(userId.Value, request);
 
     if (!success)
       return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
