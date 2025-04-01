@@ -49,7 +49,7 @@ public sealed class UserProfileController(UserService userService) : ControllerB
   [HttpPut(Name = "UpdateCurrentUser")]
   [Authorize]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
-  [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
   public async Task<IActionResult> UpdateCurrentUser([FromBody] UserUpdateRequest request)
