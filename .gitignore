@@ -400,4 +400,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 # util start script
+start.bat
 start.cmd
+start.sh
+start.ps1

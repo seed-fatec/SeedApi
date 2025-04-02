@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SeedApi.Models.DTOs;
-using SeedApi.Requests.Users;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
 using SeedApi.Services;
@@ -33,7 +31,7 @@ public sealed class UsersController(UserService userService) : ControllerBase
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
     var users = await _userService.GetAllUsersAsync();
-    var safeUsers = users.Select(u => new PublicUserDTO
+    var safeUsers = users.Select(u => new PublicUserResponse
     {
       Id = u.Id,
       Name = u.Name,

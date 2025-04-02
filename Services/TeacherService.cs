@@ -21,4 +21,11 @@ public class TeacherService(ApplicationDbContext context)
       .Where(u => u.Id == userId && u.Role == UserRole.Teacher)
       .FirstOrDefaultAsync();
   }
+
+  public async Task<bool> IsTeacherInCourseAsync(int teacherId, int courseId)
+  {
+    return await _context.Courses
+        .Where(c => c.Id == courseId)
+        .AnyAsync(c => c.Teachers.Any(t => t.Id == teacherId));
+  }
 }

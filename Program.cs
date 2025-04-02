@@ -58,6 +58,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<TeacherService>();
+builder.Services.AddScoped<StudentService>();
+builder.Services.AddScoped<CourseService>();
 
 builder.Services.AddControllers()
   .AddJsonOptions(options =>

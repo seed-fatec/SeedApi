@@ -27,6 +27,9 @@ public class User
 
   [Required]
   public UserRole Role { get; set; }
+
+  public ICollection<Course> EnrolledCourses = [];
+  public ICollection<Course> TaughtCourses = [];
 }
 
 public enum UserRole
