@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.3
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: seed
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    environment:
+      - AdminKey=secret-admin-key
+      - DatabaseSettings__ConnectionString=Server=db;Port=3306;Uid=root;Pwd=root;Database=seed
+      - JwtSettings__Issuer=http://localhost:8080
+      - JwtSettings__Audience=http://localhost:5173
+      - JwtSettings__Secret=your-super-secret-key-here
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8081:8080"
+      - "8443:443"
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+volumes:
+  db_data: {}
