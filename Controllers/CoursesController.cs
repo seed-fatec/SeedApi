@@ -109,7 +109,7 @@ public sealed class CoursesController(
       Price = request.Price,
       MaxCapacity = request.MaxCapacity,
       StartDate = request.StartDate,
-      EndDate = request.EndDate
+      EndDate = request.EndDate,
     });
 
     return CreatedAtAction(nameof(CreateCourse), new CourseResponse
@@ -121,6 +121,8 @@ public sealed class CoursesController(
       MaxCapacity = newCourse.MaxCapacity,
       StartDate = newCourse.StartDate,
       EndDate = newCourse.EndDate,
+      CreatedAt = newCourse.CreatedAt,
+      UpdatedAt = newCourse.UpdatedAt
     });
   }
 

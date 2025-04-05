@@ -12,4 +12,10 @@ public record UserResponse
 
   [JsonPropertyName("birth_date")]
   public DateOnly? BirthDate { get; init; }
+
+  [JsonPropertyName("created_at")]
+  public DateTime CreatedAt { get; init; }
+
+  [JsonPropertyName("updated_at")]
+  public DateTime? UpdatedAt { get; init; }
 }

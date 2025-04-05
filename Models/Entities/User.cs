@@ -28,6 +28,9 @@ public class User
   [Required]
   public UserRole Role { get; set; }
 
+  public DateTime CreatedAt { get; set; }
+  public DateTime? UpdatedAt { get; set; } = null;
+
   public ICollection<Course> EnrolledCourses = [];
   public ICollection<Course> TaughtCourses = [];
 }
