@@ -51,7 +51,9 @@ public sealed class CoursesController(
       Price = c.Price,
       MaxCapacity = c.MaxCapacity,
       StartDate = c.StartDate,
-      EndDate = c.EndDate
+      EndDate = c.EndDate,
+      CreatedAt = c.CreatedAt,
+      UpdatedAt = c.UpdatedAt
     });
 
     return Ok(new CourseCollectionResponse
@@ -85,7 +87,9 @@ public sealed class CoursesController(
       Price = course.Price,
       MaxCapacity = course.MaxCapacity,
       StartDate = course.StartDate,
-      EndDate = course.EndDate
+      EndDate = course.EndDate,
+      CreatedAt = course.CreatedAt,
+      UpdatedAt = course.UpdatedAt
     });
   }
 

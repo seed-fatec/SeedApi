@@ -1283,6 +1283,15 @@
           "end_date": {
             "type": "string",
             "format": "date"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -1459,11 +1468,11 @@
             "format": "date",
             "nullable": true
           },
-          "createdAt": {
+          "created_at": {
             "type": "string",
             "format": "date-time"
           },
-          "updatedAt": {
+          "updated_at": {
             "type": "string",
             "format": "date-time",
             "nullable": true
