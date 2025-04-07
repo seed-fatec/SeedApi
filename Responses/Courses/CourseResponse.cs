@@ -22,4 +22,10 @@ public record CourseResponse
 
   [JsonPropertyName("end_date")]
   public DateOnly EndDate { get; init; }
+
+  [JsonPropertyName("created_at")]
+  public DateTime CreatedAt { get; init; }
+
+  [JsonPropertyName("updated_at")]
+  public DateTime? UpdatedAt { get; init; }
 }

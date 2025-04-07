@@ -43,6 +43,8 @@ public sealed class UserProfileController(UserService userService) : ControllerB
       Role = user.Role,
       BirthDate = user.BirthDate,
       Email = user.Email,
+      CreatedAt = user.CreatedAt,
+      UpdatedAt = user.UpdatedAt
     });
   }
 
