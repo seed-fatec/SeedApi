@@ -30,6 +30,7 @@ public class Course
 
   public DateTime CreatedAt { get; set; }
   public DateTime? UpdatedAt { get; set; } = null;
+  public DateTime? DeletedAt { get; set; }
 
   public ICollection<User> Students { get; set; } = [];
   public ICollection<User> Teachers { get; set; } = [];

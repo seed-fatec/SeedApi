@@ -37,4 +37,15 @@ public class UserService(ApplicationDbContext context)
 
     return true;
   }
+
+  public async Task<bool> DeleteUserAsync(int userId)
+  {
+    var user = await _context.Users.FindAsync(userId);
+    if (user == null || user.DeletedAt != null)
+        return false;
+
+    user.DeletedAt = DateTime.UtcNow;
+    await _context.SaveChangesAsync();
+    return true;
+  }
 }

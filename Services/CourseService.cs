@@ -44,14 +44,11 @@ public class CourseService(ApplicationDbContext context)
   public async Task<bool> DeleteCourseAsync(int courseId)
   {
     var course = await _context.Courses.FindAsync(courseId);
-    if (course == null)
-    {
+    if (course == null || course.DeletedAt != null)
       return false;
-    }
 
-    _context.Courses.Remove(course);
+    course.DeletedAt = DateTime.UtcNow;
     await _context.SaveChangesAsync();
-
     return true;
   }
 
