@@ -16,7 +16,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Configuração de filtros globais para soft delete
     modelBuilder.Entity<User>().HasQueryFilter(u => u.DeletedAt == null);
-    modelBuilder.Entity<RefreshToken>().HasQueryFilter(rt => rt.User == null || rt.User.DeletedAt == null);
+    modelBuilder.Entity<RefreshToken>().HasQueryFilter(rt => rt.User != null && rt.User.DeletedAt == null);
     modelBuilder.Entity<Course>().HasQueryFilter(c => c.DeletedAt == null);
 
     // Configuração de relacionamentos
