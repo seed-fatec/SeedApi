@@ -47,7 +47,8 @@ public class CourseService(ApplicationDbContext context)
     if (course == null || course.DeletedAt != null)
       return false;
 
-    course.DeletedAt = DateTime.UtcNow;
+    _context.Courses.Remove(course);
+    
     await _context.SaveChangesAsync();
     return true;
   }
