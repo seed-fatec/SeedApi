@@ -19,6 +19,7 @@ namespace SeedApi.Requests.Courses
 
     [Required(ErrorMessage = "A capacidade máxima do curso é obrigatória.")]
     [Description("A capacidade máxima de membros do curso.")]
+    [Range(1, 30, ErrorMessage = "A capacidade deve ser um número entre 1 e 30.")]
     [JsonPropertyName("max_capacity")]
     public uint MaxCapacity { get; init; }
 
