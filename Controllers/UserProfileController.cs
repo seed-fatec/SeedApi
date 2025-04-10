@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SeedApi.Models.Entities;
-using SeedApi.Models.Entities;
 using SeedApi.Requests.Users;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
