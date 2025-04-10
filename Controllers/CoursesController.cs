@@ -115,10 +115,7 @@ public sealed class CoursesController(
       StartDate = request.StartDate,
       EndDate = request.EndDate,
     });
-
-    Console.WriteLine(newCourse.CreatedAt);
-    Console.WriteLine(newCourse.UpdatedAt);
-
+    
     return CreatedAtAction(nameof(CreateCourse), new CourseResponse
     {
       Id = newCourse.Id,

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SeedApi.Models.Entities;
+using SeedApi.Models.Entities;
 using SeedApi.Requests.Users;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
@@ -31,7 +32,12 @@ public sealed class UserProfileController(UserService userService) : ControllerB
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetCurrentUser()
   {
-    var user = await GetAuthenticated();
+    var authenticatedUser = await GetAuthenticated();
+
+    if (authenticatedUser == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var user = await _userService.GetUserByIdAsync(authenticatedUser.Id);
 
     if (user == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
