@@ -18,7 +18,7 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext
 
   public async Task<bool> RegisterAsync(string name, string email, string password, UserRole role)
   {
-    var userExists = await _context.Users.AnyAsync(u => u.Email == email);
+    var userExists = await _context.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == email);
 
     if (userExists)
       return false;
