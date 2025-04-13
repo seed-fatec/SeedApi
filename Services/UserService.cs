@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SeedApi.Models;
 using SeedApi.Models.Entities;
 using SeedApi.Requests.Users;
+using System.Security.Claims;
 
 namespace SeedApi.Services;
 
@@ -20,6 +21,16 @@ public class UserService(ApplicationDbContext context)
     return await _context.Users
       .Where(u => u.Id == userId)
       .FirstOrDefaultAsync();
+  }
+
+  public async Task<User?> GetAuthenticatedUserAsync(ClaimsPrincipal user)
+  {
+    var userIdClaim = user.FindFirstValue("UserId");
+    if (int.TryParse(userIdClaim, out var userId))
+    {
+      return await GetUserByIdAsync(userId);
+    }
+    return null;
   }
 
   public async Task<bool> UpdateUserAsync(int userId, UserUpdateRequest newUser)
@@ -42,7 +53,7 @@ public class UserService(ApplicationDbContext context)
   {
     var user = await _context.Users.FindAsync(userId);
     if (user == null || user.DeletedAt != null)
-        return false;
+      return false;
 
     user.DeletedAt = DateTime.UtcNow;
     await _context.SaveChangesAsync();

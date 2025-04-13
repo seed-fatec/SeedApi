@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SeedApi.Models.Entities;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
 using SeedApi.Services;
-using System.Security.Claims;
 
 namespace SeedApi.Controllers;
 
@@ -14,21 +12,13 @@ public sealed class UsersController(UserService userService) : ControllerBase
 {
   private readonly UserService _userService = userService;
 
-  private async Task<User?> GetAuthenticated()
-  {
-    var userIdClaim = User.FindFirstValue("UserId");
-    var validId = int.TryParse(userIdClaim, out var userId);
-
-    return validId ? await _userService.GetUserByIdAsync(userId) : null;
-  }
-
   [HttpGet(Name = "GetUsers")]
   [Authorize]
   [ProducesResponseType<UserCollectionResponse>(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetUsers()
   {
-    var authenticatedUser = await GetAuthenticated();
+    var authenticatedUser = await _userService.GetAuthenticatedUserAsync(User);
 
     if (authenticatedUser == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
@@ -54,7 +44,7 @@ public sealed class UsersController(UserService userService) : ControllerBase
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetUser(int id)
   {
-    var authenticatedUser = await GetAuthenticated();
+    var authenticatedUser = await _userService.GetAuthenticatedUserAsync(User);
 
     if (authenticatedUser == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });

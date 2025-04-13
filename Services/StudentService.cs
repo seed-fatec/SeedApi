@@ -21,4 +21,12 @@ public class StudentService(ApplicationDbContext context)
       .Where(u => u.Id == userId && u.Role == UserRole.Student)
       .FirstOrDefaultAsync();
   }
+
+  public async Task<bool> IsStudentInCourseAsync(int studentId, int courseId)
+  {
+    return await _context.Courses
+        .Where(c => c.Id == courseId)
+        .Include(c => c.Students)
+        .AnyAsync(c => c.Students.Any(t => t.Id == studentId));
+  }
 }
