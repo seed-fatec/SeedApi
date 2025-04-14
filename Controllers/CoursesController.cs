@@ -5,6 +5,7 @@ using SeedApi.Models.Entities;
 using SeedApi.Requests.Courses;
 using SeedApi.Responses;
 using SeedApi.Responses.Courses;
+using SeedApi.Responses.Users;
 using SeedApi.Services;
 
 namespace SeedApi.Controllers;
@@ -167,24 +168,66 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
     return Ok(new { Message = "Matrícula realizada com sucesso." });
   }
 
-  [HttpGet("teachers", Name = "ListTeachers")]
+  [HttpGet("{id:int}/teachers", Name = "ListTeachers")]
   [Authorize]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
-  public async Task<IActionResult> ListTeachers()
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> ListTeachersByCourse(int id)
   {
     var user = await _userService.GetAuthenticatedUserAsync(User);
     if (user == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
-    var teachers = await _teacherService.GetAllTeachersAsync();
-    var response = teachers.Select(t => new
+    var course = await _courseService.GetCourseByIdAsync(id);
+    if (course == null)
+      return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
+
+    var rawTeachers = await _courseService.GetTeachersByCourseIdAsync(course.Id);
+
+    var teachers = rawTeachers.Select(t => new PublicUserResponse
     {
-      t.Id,
-      t.Name,
-      t.Email
+      Id = t.Id,
+      Name = t.Name,
+      Role = t.Role,
+      BirthDate = t.BirthDate
     });
 
-    return Ok(response);
+    return Ok(new UserCollectionResponse
+    {
+      Users = [.. teachers]
+    });
+  }
+
+  [HttpGet("{id:int}/students", Name = "ListStudents")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> ListStudentsByCourse(int id)
+  {
+    var user = await _userService.GetAuthenticatedUserAsync(User);
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var course = await _courseService.GetCourseByIdAsync(id);
+
+    if (course == null)
+      return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
+
+    var rawStudents = await _courseService.GetStudentsByCourseIdAsync(course.Id);
+
+    var students = rawStudents.Select(t => new PublicUserResponse
+    {
+      Id = t.Id,
+      Name = t.Name,
+      Role = t.Role,
+      BirthDate = t.BirthDate
+    });
+
+    return Ok(new UserCollectionResponse
+    {
+      Users = [.. students]
+    });
   }
 }

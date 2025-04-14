@@ -7,6 +7,7 @@ namespace SeedApi.Requests.Courses
   public record CourseCreateRequest : IValidatableObject
   {
     [Required(ErrorMessage = "O nome do curso é obrigatório.")]
+    [MinLength(8, ErrorMessage = "O nome do curso deve ter no mínimo 8 caracteres.")]
     [Description("O nome do curso.")]
     public string Name { get; init; } = null!;
 
