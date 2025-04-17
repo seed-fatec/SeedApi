@@ -5,6 +5,7 @@ using Scalar.AspNetCore;
 using SeedApi.Infrastructure.OpenApi;
 using SeedApi.Models;
 using SeedApi.Models.Config;
+using SeedApi.Seeders;
 using SeedApi.Services;
 using System.Text;
 using System.Text.Json;
@@ -20,11 +21,6 @@ builder.Services.Configure<DatabaseSettings>(
 builder.Services.Configure<JwtSettings>(
   builder.Configuration.GetSection("JwtSettings")
 );
-
-var adminKey = builder.Configuration["AdminKey"]
-  ?? throw new Exception("Failed to load AdminKey from environment.");
-
-builder.Services.AddSingleton(new AdminSettings { Secret = adminKey });
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
   ?? throw new Exception("Failed to load JwtSettings from environment.");
@@ -61,6 +57,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TeacherService>();
 builder.Services.AddScoped<StudentService>();
 builder.Services.AddScoped<CourseService>();
+builder.Services.AddScoped<AdminSeeder>();
 
 builder.Services.AddControllers()
   .AddJsonOptions(options =>
@@ -110,5 +107,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+  var seeder = scope.ServiceProvider.GetRequiredService<AdminSeeder>();
+  await seeder.SeedAsync();
+}
 
 app.Run();
