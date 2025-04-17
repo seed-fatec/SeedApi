@@ -18,7 +18,7 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext
 
   public async Task<bool> RegisterAsync(string name, string email, string password, UserRole role)
   {
-    var userExists = await _context.Users.AnyAsync(u => u.Email == email);
+    var userExists = await _context.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == email);
 
     if (userExists)
       return false;
@@ -32,6 +32,24 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext
     };
 
     _context.Users.Add(newUser);
+    await _context.SaveChangesAsync();
+    return true;
+  }
+
+  public async Task<bool> RegisterAdminAsync(string email, string password)
+  {
+    var adminExists = await _context.Admins.IgnoreQueryFilters().AnyAsync(u => u.Email == email);
+
+    if (adminExists)
+      return false;
+
+    var newAdmin = new Admin
+    {
+      Email = email,
+      PasswordHash = HashPassword(password),
+    };
+
+    _context.Admins.Add(newAdmin);
     await _context.SaveChangesAsync();
     return true;
   }
@@ -52,6 +70,29 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext
     };
 
     _context.Users.Update(user);
+    await _context.SaveChangesAsync();
+
+    return (accessToken, refreshToken);
+  }
+
+  public async Task<(string? accessToken, string? refreshToken)> AuthenticateAdminAsync(string email, string password)
+  {
+    var admin = await _context.Admins.Include(u => u.RefreshToken).FirstOrDefaultAsync(u => u.Email == email);
+
+    if (admin == null || !VerifyPassword(password, admin.PasswordHash))
+      return (null, null);
+
+    var accessToken = GenerateAdminJwtToken();
+    var refreshToken = GenerateAdminJwtRefreshToken();
+
+    admin.RefreshToken = new AdminRefreshToken
+    {
+      Token = refreshToken,
+      ExpiryTime = DateTime.UtcNow.AddDays(1)
+    };
+
+    _context.Admins.Update(admin);
+
     await _context.SaveChangesAsync();
 
     return (accessToken, refreshToken);
@@ -82,17 +123,65 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, ApplicationDbContext
     return tokenHandler.WriteToken(token);
   }
 
+  private string GenerateAdminJwtRefreshToken()
+  {
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+
+    var claims = new List<Claim>
+    {
+      new ("TokenType", "RefreshToken")
+    };
+
+    var tokenDescriptor = new SecurityTokenDescriptor
+    {
+      Subject = new ClaimsIdentity(claims),
+      Expires = DateTime.UtcNow.AddDays(1),
+      Issuer = _jwtSettings.Issuer,
+      Audience = _jwtSettings.Audience,
+      SigningCredentials = new SigningCredentials(
+      new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+    };
+
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+    return tokenHandler.WriteToken(token);
+  }
+
   private string GenerateJwtToken(User user)
   {
     var tokenHandler = new JwtSecurityTokenHandler();
     var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
 
     var claims = new List<Claim>
-            {
-              new ("UserId", user.Id.ToString()),
-              new ("TokenType", "AccessToken"),
-              new (ClaimTypes.Role, user.Role.ToString())
-            };
+    {
+      new ("UserId", user.Id.ToString()),
+      new ("TokenType", "AccessToken"),
+      new (ClaimTypes.Role, user.Role.ToString())
+    };
+
+    var tokenDescriptor = new SecurityTokenDescriptor
+    {
+      Subject = new ClaimsIdentity(claims),
+      Expires = DateTime.UtcNow.AddHours(1),
+      Issuer = _jwtSettings.Issuer,
+      Audience = _jwtSettings.Audience,
+      SigningCredentials = new SigningCredentials(
+        new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+    };
+
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+    return tokenHandler.WriteToken(token);
+  }
+  private string GenerateAdminJwtToken()
+  {
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+
+    var claims = new List<Claim>
+    {
+      new (ClaimTypes.Role, "admin"),
+      new ("TokenType", "AccessToken"),
+    };
 
     var tokenDescriptor = new SecurityTokenDescriptor
     {

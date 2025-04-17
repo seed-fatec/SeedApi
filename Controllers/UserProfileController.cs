@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SeedApi.Models.Entities;
 using SeedApi.Requests.Users;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
 using SeedApi.Services;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SeedApi.Controllers;
 
@@ -14,10 +17,12 @@ public sealed class UserProfileController(UserService userService) : ControllerB
 {
   private readonly UserService _userService = userService;
 
-  private int? GetUserId()
+  private async Task<User?> GetAuthenticated()
   {
     var userIdClaim = User.FindFirstValue("UserId");
-    return int.TryParse(userIdClaim, out var userId) ? userId : null;
+    var validId = int.TryParse(userIdClaim, out var userId);
+
+    return validId ? await _userService.GetUserByIdAsync(userId) : null;
   }
 
   [HttpGet(Name = "GetCurrentUser")]
@@ -26,12 +31,12 @@ public sealed class UserProfileController(UserService userService) : ControllerB
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetCurrentUser()
   {
-    var userId = GetUserId();
+    var authenticatedUser = await GetAuthenticated();
 
-    if (userId == null)
+    if (authenticatedUser == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
-    var user = await _userService.GetUserByIdAsync(userId.Value);
+    var user = await _userService.GetUserByIdAsync(authenticatedUser.Id);
 
     if (user == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
@@ -56,15 +61,38 @@ public sealed class UserProfileController(UserService userService) : ControllerB
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
   public async Task<IActionResult> UpdateCurrentUser([FromBody] UserUpdateRequest request)
   {
-    var userId = GetUserId();
+    var user = await GetAuthenticated();
 
-    if (userId == null)
+    if (user == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
-    var success = await _userService.UpdateUserAsync(userId.Value, request);
+    var success = await _userService.UpdateUserAsync(user.Id, request);
 
     if (!success)
       return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
+
+    return NoContent();
+  }
+
+  [HttpDelete(Name = "DeleteCurrentUser")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> DeleteCurrentUser([FromBody] UserDeleteRequest request)
+  {
+    var user = await GetAuthenticated();
+
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var hashedBytes = SHA256.HashData(Encoding.UTF8.GetBytes(request.Password));
+    var requestPasswordHash = Convert.ToBase64String(hashedBytes);
+
+    if (!string.Equals(requestPasswordHash, user.PasswordHash))
+      return Unauthorized(new ErrorResponse { Message = "Senha incorreta." });
+
+    await _userService.DeleteUserAsync(user.Id);
 
     return NoContent();
   }

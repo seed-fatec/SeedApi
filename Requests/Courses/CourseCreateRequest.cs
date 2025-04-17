@@ -7,6 +7,7 @@ namespace SeedApi.Requests.Courses
   public record CourseCreateRequest : IValidatableObject
   {
     [Required(ErrorMessage = "O nome do curso é obrigatório.")]
+    [MinLength(8, ErrorMessage = "O nome do curso deve ter no mínimo 8 caracteres.")]
     [Description("O nome do curso.")]
     public string Name { get; init; } = null!;
 
@@ -19,6 +20,7 @@ namespace SeedApi.Requests.Courses
 
     [Required(ErrorMessage = "A capacidade máxima do curso é obrigatória.")]
     [Description("A capacidade máxima de membros do curso.")]
+    [Range(1, 30, ErrorMessage = "A capacidade deve ser um número entre 1 e 30.")]
     [JsonPropertyName("max_capacity")]
     public uint MaxCapacity { get; init; }
 

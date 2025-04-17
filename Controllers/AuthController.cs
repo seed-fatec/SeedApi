@@ -3,19 +3,17 @@ using SeedApi.Requests.Auth;
 using SeedApi.Responses;
 using SeedApi.Responses.Auth;
 using SeedApi.Models.Entities;
-using SeedApi.Models.Config;
 using SeedApi.Services;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel;
+using SeedApi.Middlewares;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SeedApi.Controllers;
 
 [ApiController]
 [Route("api")]
-public sealed class AuthController(AuthService authService, AdminSettings adminSettings) : ControllerBase
+public sealed class AuthController(AuthService authService) : ControllerBase
 {
   private readonly AuthService _authService = authService;
-  private readonly AdminSettings _adminSettings = adminSettings;
 
   [HttpPost("student/register", Name = "RegisterStudent")]
   [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
@@ -40,23 +38,14 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
   }
 
   [HttpPost("teacher/register", Name = "RegisterTeacher")]
+  [Authorize]
+  [OnlyAdmin]
   [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
   [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status409Conflict)]
   [ProducesResponseType(StatusCodes.Status403Forbidden)]
-  public async Task<IActionResult> RegisterTeacher(
-    [FromHeader(Name = "X-Admin-Key")]
-      [Description("Chave de administrador do sistema.")]
-      [Required(ErrorMessage = "A chave de adminstrador é obrigatória.")]
-      string adminKey,
-    [FromBody] RegisterRequest request
-  )
+  public async Task<IActionResult> RegisterTeacher([FromBody] RegisterRequest request)
   {
-    if (adminKey != _adminSettings.Secret)
-    {
-      return Forbid();
-    }
-
     var success = await _authService.RegisterAsync(request.Name, request.Email, request.Password, UserRole.Teacher);
 
     if (!success)
@@ -103,6 +92,29 @@ public sealed class AuthController(AuthService authService, AdminSettings adminS
   public async Task<IActionResult> LoginTeacher([FromBody] LoginRequest request)
   {
     var (accessToken, refreshToken) = await _authService.AuthenticateAsync(request.Email, request.Password, UserRole.Teacher);
+
+    if (accessToken == null || refreshToken == null)
+    {
+      return Unauthorized(new ErrorResponse
+      {
+        Message = "Credenciais inválidas.",
+      });
+    }
+
+    return Ok(new LoginResponse
+    {
+      AccessToken = accessToken,
+      RefreshToken = refreshToken,
+    });
+  }
+
+  [HttpPost("admin/login", Name = "LoginAdmin")]
+  [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> LoginAdmin([FromBody] LoginRequest request)
+  {
+    var (accessToken, refreshToken) = await _authService.AuthenticateAdminAsync(request.Email, request.Password);
 
     if (accessToken == null || refreshToken == null)
     {

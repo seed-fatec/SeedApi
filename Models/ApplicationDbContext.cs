@@ -1,22 +1,28 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using SeedApi.Models.Entities;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SeedApi.Models;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
+  public DbSet<Admin> Admins { get; set; }
   public DbSet<User> Users { get; set; }
   public DbSet<Course> Courses { get; set; }
   public DbSet<RefreshToken> RefreshTokens { get; set; }
+  public DbSet<AdminRefreshToken> AdminRefreshTokens { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
     base.OnModelCreating(modelBuilder);
 
     // Configuração de filtros globais para soft delete
+    modelBuilder.Entity<Admin>().HasQueryFilter(a => a.DeletedAt == null);
     modelBuilder.Entity<User>().HasQueryFilter(u => u.DeletedAt == null);
-    modelBuilder.Entity<RefreshToken>().HasQueryFilter(rt => rt.User == null || rt.User.DeletedAt == null);
+    modelBuilder.Entity<RefreshToken>().HasQueryFilter(rt => rt.User != null && rt.User.DeletedAt == null);
+    modelBuilder.Entity<AdminRefreshToken>().HasQueryFilter(rt => rt.Admin != null && rt.Admin.DeletedAt == null);
     modelBuilder.Entity<Course>().HasQueryFilter(c => c.DeletedAt == null);
 
     // Configuração de relacionamentos
