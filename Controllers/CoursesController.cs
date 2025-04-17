@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SeedApi.Extensions;
 using SeedApi.Middlewares;
 using SeedApi.Models.Entities;
 using SeedApi.Requests.Courses;
@@ -20,13 +21,17 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
 
   [HttpGet(Name = "ListCourses")]
   [Authorize]
+  [AllowAdmin]
   [ProducesResponseType<CourseCollectionResponse>(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> ListCourses()
   {
-    var user = await _userService.GetAuthenticatedUserAsync(User);
-    if (user == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    if (!User.IsAdmin())
+    {
+      var user = await _userService.GetAuthenticatedUserAsync(User);
+      if (user == null)
+        return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    }
 
     var courses = await _courseService.ListAllCoursesAsync();
     var response = new CourseCollectionResponse
@@ -84,14 +89,18 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
 
   [HttpGet("{id:int}", Name = "GetCourse")]
   [Authorize]
+  [AllowAdmin]
   [ProducesResponseType<CourseResponse>(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetCourse(int id)
   {
-    var user = await _userService.GetAuthenticatedUserAsync(User);
-    if (user == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    if (!User.IsAdmin())
+    {
+      var user = await _userService.GetAuthenticatedUserAsync(User);
+      if (user == null)
+        return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    }
 
     var course = await _courseService.GetCourseByIdAsync(id);
     if (course == null)
@@ -170,14 +179,18 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
 
   [HttpGet("{id:int}/teachers", Name = "ListTeachers")]
   [Authorize]
+  [AllowAdmin]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
   public async Task<IActionResult> ListTeachersByCourse(int id)
   {
-    var user = await _userService.GetAuthenticatedUserAsync(User);
-    if (user == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    if (!User.IsAdmin())
+    {
+      var user = await _userService.GetAuthenticatedUserAsync(User);
+      if (user == null)
+        return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    }
 
     var course = await _courseService.GetCourseByIdAsync(id);
     if (course == null)
@@ -201,14 +214,18 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
 
   [HttpGet("{id:int}/students", Name = "ListStudents")]
   [Authorize]
+  [AllowAdmin]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
   public async Task<IActionResult> ListStudentsByCourse(int id)
   {
-    var user = await _userService.GetAuthenticatedUserAsync(User);
-    if (user == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    if (!User.IsAdmin())
+    {
+      var user = await _userService.GetAuthenticatedUserAsync(User);
+      if (user == null)
+        return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    }
 
     var course = await _courseService.GetCourseByIdAsync(id);
 
