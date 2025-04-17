@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SeedApi.Extensions;
+using SeedApi.Middlewares;
 using SeedApi.Responses;
 using SeedApi.Responses.Users;
 using SeedApi.Services;
@@ -14,14 +16,18 @@ public sealed class UsersController(UserService userService) : ControllerBase
 
   [HttpGet(Name = "GetUsers")]
   [Authorize]
+  [AllowAdmin]
   [ProducesResponseType<UserCollectionResponse>(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetUsers()
   {
-    var authenticatedUser = await _userService.GetAuthenticatedUserAsync(User);
+    if (!User.IsAdmin())
+    {
+      var authenticatedUser = await _userService.GetAuthenticatedUserAsync(User);
 
-    if (authenticatedUser == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+      if (authenticatedUser == null)
+        return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    }
 
     var users = await _userService.GetAllUsersAsync();
     var safeUsers = users.Select(u => new PublicUserResponse
@@ -39,15 +45,19 @@ public sealed class UsersController(UserService userService) : ControllerBase
 
   [HttpGet("{id:int}", Name = "GetUser")]
   [Authorize]
+  [AllowAdmin]
   [ProducesResponseType<PublicUserResponse>(StatusCodes.Status200OK)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
   [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
   public async Task<IActionResult> GetUser(int id)
   {
-    var authenticatedUser = await _userService.GetAuthenticatedUserAsync(User);
+    if (!User.IsAdmin())
+    {
+      var authenticatedUser = await _userService.GetAuthenticatedUserAsync(User);
 
-    if (authenticatedUser == null)
-      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+      if (authenticatedUser == null)
+        return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+    }
 
     var user = await _userService.GetUserByIdAsync(id);
 

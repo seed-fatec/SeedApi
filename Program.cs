@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using SeedApi.Infrastructure.OpenApi;
+using SeedApi.Middlewares;
 using SeedApi.Models;
 using SeedApi.Models.Config;
 using SeedApi.Seeders;
@@ -100,6 +101,8 @@ if (app.Environment.IsDevelopment())
     });
   });
 }
+
+app.UseMiddleware<AdminRouteRestrictionMiddleware>();
 
 app.UseHttpsRedirection();
 
