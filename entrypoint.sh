@@ -1,3 +1,5 @@
 #!/bin/bash
 set -e
-exec dotnet SeedApi.dll
+
+dotnet ef database update --project SeedApi.csproj --startup-project .
+dotnet out/SeedApi.dll

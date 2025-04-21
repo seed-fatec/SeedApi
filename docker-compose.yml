@@ -15,7 +15,6 @@ services:
 
   api:
     environment:
-      - AdminKey=secret-admin-key
       - DatabaseSettings__ConnectionString=Server=db;Port=3306;Uid=root;Pwd=root;Database=seed
       - JwtSettings__Issuer=http://localhost:8080
       - JwtSettings__Audience=http://localhost:5173

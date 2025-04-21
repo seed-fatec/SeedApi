@@ -1,0 +1,35 @@
+# Pastas de build
+bin/
+obj/
+
+# Git
+.git/
+.gitignore
+
+# VS Code
+.vscode/
+
+# Arquivos de usuário do Visual Studio
+*.user
+*.suo
+
+# Logs
+*.log
+
+# Configs locais
+.env
+*.env
+
+# Docker e Compose extras
+Dockerfile.*
+docker-compose.*
+
+# Outros arquivos temporários/comuns
+*.db
+*.sqlite
+*.mdf
+*.ldf
+*.DS_Store
+Thumbs.db
+
+start.cmd
