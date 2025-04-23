@@ -1,24 +1,26 @@
-# Etapa de build
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS final
 WORKDIR /App
+
+COPY SeedApi.sln ./
+COPY SeedApi/SeedApi.API/SeedApi.API.csproj ./SeedApi/SeedApi.API/
+COPY SeedApi/SeedApi.Application/SeedApi.Application.csproj ./SeedApi/SeedApi.Application/
+COPY SeedApi/SeedApi.Domain/SeedApi.Domain.csproj ./SeedApi/SeedApi.Domain/
+COPY SeedApi/SeedApi.Infrastructure/SeedApi.Infrastructure.csproj ./SeedApi/SeedApi.Infrastructure/
+
+RUN dotnet restore
+
 COPY . ./
-RUN dotnet publish SeedApi.sln -c Release -o /App/out -p:EnvironmentName=Production
 
-# Etapa de runtime
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS runtime
-WORKDIR /App
-
+# Instala o dotnet-ef globalmente
 RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
+ENV PATH="${PATH}:/root/.dotnet/tools"
 
-COPY --from=build /App/out ./out
-COPY --from=build /App ./
+RUN dotnet publish SeedApi/SeedApi.API -c Release -o /App/publish
 
-# Copia o script de entrypoint
 COPY entrypoint.sh .
-
 RUN chmod +x ./entrypoint.sh
 
+# Expondo as portas
 EXPOSE 8080
 EXPOSE 443
 
