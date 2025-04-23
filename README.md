@@ -33,7 +33,6 @@
    export JwtSettings__Issuer="your-issuer"
    export JwtSettings__Audience="your-audience"
    export JwtSettings__Secret="your-super-secret-key-here"
-   export AdminKey="secret-admin-key"
    ```
 
    **Windows (PowerShell):**
@@ -43,7 +42,6 @@
    $env:JwtSettings__Issuer="your-issuer"
    $env:JwtSettings__Audience="your-audience"
    $env:JwtSettings__Secret="your-super-secret-key-here"
-   $env:AdminKey="secret-admin-key"
    ```
 
    **Windows (Command Prompt):**
@@ -53,7 +51,6 @@
    set JwtSettings__Issuer=your-issuer
    set JwtSettings__Audience=your-audience
    set JwtSettings__Secret=your-super-secret-key-here
-   set AdminKey=secret-admin-key
    ```
 
 3. Instale a ferramenta `dotnet ef`:
