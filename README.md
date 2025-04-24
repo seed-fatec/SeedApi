@@ -62,12 +62,12 @@
 4. Execute as migrações do Entity Framework para criar o banco de dados:
 
    ```bash
-   dotnet ef database update
+   dotnet ef database update --context ApplicationDbContext --project ./SeedApi/SeedApi.Infrastructure --startup-project ./SeedApi/SeedApi.API
    ```
 
 5. Execute o projeto:
    ```bash
-   dotnet run
+   dotnet run --project ./SeedApi/SeedApi.API
    ```
 
 ## Endpoints Principais 🔗
