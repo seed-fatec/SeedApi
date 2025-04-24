@@ -3,24 +3,36 @@ using SeedApi.Infrastructure.Persistence;
 using SeedApi.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace SeedApi.Infrastructure.Seeders;
 
-public class AdminSeeder(ApplicationDbContext context)
+public class AdminSeeder(ApplicationDbContext context, IConfiguration configuration)
 {
   private readonly ApplicationDbContext _context = context;
+  private readonly IConfiguration _configuration = configuration;
 
   public async Task SeedAsync()
   {
-    await RegisterAdminAsync("admin@email.com", "admin");
+    var email = _configuration["Admin:Email"] ?? "admin@email.com";
+    var password = _configuration["Admin:Password"] ?? "admin";
+
+    await RegisterOrUpdateAdminAsync(email, password);
   }
 
-  private async Task RegisterAdminAsync(string email, string password)
+  private async Task RegisterOrUpdateAdminAsync(string email, string password)
   {
-    var adminExists = await _context.Admins.IgnoreQueryFilters().AnyAsync(u => u.Email == email);
+    var existingAdmin = await _context.Admins.IgnoreQueryFilters().FirstOrDefaultAsync();
 
-    if (adminExists)
+    if (existingAdmin is not null)
+    {
+      existingAdmin.Email = email.ToLowerInvariant();
+      existingAdmin.PasswordHash = HashPassword(password);
+
+      _context.Admins.Update(existingAdmin);
+      await _context.SaveChangesAsync();
       return;
+    }
 
     var newAdmin = new Admin
     {
