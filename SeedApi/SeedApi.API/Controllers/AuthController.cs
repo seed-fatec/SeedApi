@@ -174,4 +174,26 @@ public sealed class AuthController(AuthService authService) : ControllerBase
       Message = "Logout realizado com sucesso.",
     });
   }
+
+  [HttpPost("admin/logout", Name = "LogoutAdmin")]
+  [ProducesResponseType<LogoutResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> LogoutAdmin([FromBody] RefreshRequest request)
+  {
+    var success = await _authService.RevokeAdminRefreshTokenAsync(request.RefreshToken);
+
+    if (!success)
+    {
+      return Unauthorized(new ErrorResponse
+      {
+        Message = "Refresh token inválido.",
+      });
+    }
+
+    return Ok(new LogoutResponse
+    {
+      Message = "Logout de admin realizado com sucesso.",
+    });
+  }
 }

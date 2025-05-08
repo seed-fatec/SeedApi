@@ -234,4 +234,19 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, IPersistenceContext 
     await _context.SaveChangesAsync();
     return true;
   }
+
+  public async Task<bool> RevokeAdminRefreshTokenAsync(string refreshToken)
+  {
+    var admin = await _context.Admins
+      .Include(a => a.RefreshToken)
+      .FirstOrDefaultAsync(a => a.RefreshToken != null && a.RefreshToken.Token == refreshToken);
+
+    if (admin == null)
+      return false;
+
+    admin.RefreshToken = null;
+    _context.Admins.Update(admin);
+    await _context.SaveChangesAsync();
+    return true;
+  }
 }
