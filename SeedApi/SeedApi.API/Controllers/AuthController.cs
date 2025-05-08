@@ -196,4 +196,26 @@ public sealed class AuthController(AuthService authService) : ControllerBase
       Message = "Logout de admin realizado com sucesso.",
     });
   }
+
+  [HttpPost("admin/refresh", Name = "RefreshAdmin")]
+  [ProducesResponseType<RefreshResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<RefreshResponse>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> RefreshAdmin([FromBody] RefreshRequest request)
+  {
+    var newAccessToken = await _authService.RefreshAdminAccessTokenAsync(request.RefreshToken);
+
+    if (newAccessToken == null)
+    {
+      return Unauthorized(new ErrorResponse
+      {
+        Message = "Refresh Token de admin inválido ou expirado.",
+      });
+    }
+
+    return Ok(new RefreshResponse
+    {
+      AccessToken = newAccessToken,
+    });
+  }
 }

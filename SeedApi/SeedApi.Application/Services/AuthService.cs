@@ -220,6 +220,18 @@ public class AuthService(IOptions<JwtSettings> jwtSettings, IPersistenceContext 
     return GenerateJwtToken(user);
   }
 
+  public async Task<string?> RefreshAdminAccessTokenAsync(string refreshToken)
+  {
+    var admin = await _context.Admins
+        .Include(a => a.RefreshToken)
+        .FirstOrDefaultAsync(a => a.RefreshToken != null && a.RefreshToken.Token == refreshToken);
+
+    if (admin == null || admin.RefreshToken == null || admin.RefreshToken.ExpiryTime <= DateTime.UtcNow)
+      return null;
+
+    return GenerateAdminJwtToken();
+  }
+
   public async Task<bool> RevokeRefreshTokenAsync(string refreshToken)
   {
     var user = await _context.Users
