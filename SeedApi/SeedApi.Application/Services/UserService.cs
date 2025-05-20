@@ -59,4 +59,12 @@ public class UserService(IPersistenceContext context)
     await _context.SaveChangesAsync();
     return true;
   }
+
+  public async Task<User?> GetUserByEmailAsync(string email, bool ignoreQueryFilters = false)
+  {
+    var query = _context.Users.AsQueryable();
+    if (ignoreQueryFilters)
+      query = query.IgnoreQueryFilters();
+    return await query.FirstOrDefaultAsync(u => u.Email == email);
+  }
 }
