@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SeedApi.Domain.Entities;
 
-public class Course
+public class Class
 {
   [Key]
   [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -13,27 +13,25 @@ public class Course
   [MaxLength(255)]
   public string Name { get; set; } = null!;
 
-  [Required]
-  public uint Price { get; set; }
-
-  [Required]
-  public uint MaxCapacity { get; set; }
-
-  [Required]
-  public DateOnly StartDate { get; set; }
-
-  [Required]
-  public DateOnly EndDate { get; set; }
-
   [MaxLength(2000)]
   public string? Description { get; set; }
+
+  [Required]
+  public DateTime StartTimestamp { get; set; }
+
+  [Required]
+  public int DurationMinutes { get; set; }
+
+  [Required]
+  public bool IsFree { get; set; }
+
+  [Required]
+  public int CourseId { get; set; }
+
+  [ForeignKey(nameof(CourseId))]
+  public Course Course { get; set; } = null!;
 
   public DateTime CreatedAt { get; set; }
   public DateTime? UpdatedAt { get; set; } = null;
   public DateTime? DeletedAt { get; set; }
-
-  public ICollection<User> Students { get; set; } = [];
-  public ICollection<User> Teachers { get; set; } = [];
-
-  public ICollection<Class> Classes { get; set; } = [];
 }

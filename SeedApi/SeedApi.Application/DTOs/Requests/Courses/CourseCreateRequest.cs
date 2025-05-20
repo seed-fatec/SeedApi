@@ -36,7 +36,7 @@ namespace SeedApi.Application.DTOs.Requests.Courses
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-      if (StartDate == DateOnly.MinValue && EndDate == DateOnly.MinValue)
+      if (StartDate == default && EndDate == default)
       {
         yield return new ValidationResult(
           "As datas de início e término são obrigatórias.",
