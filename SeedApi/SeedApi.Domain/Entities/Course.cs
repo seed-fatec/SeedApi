@@ -34,4 +34,6 @@ public class Course
 
   public ICollection<User> Students { get; set; } = [];
   public ICollection<User> Teachers { get; set; } = [];
+
+  public ICollection<Class> Classes { get; set; } = [];
 }
