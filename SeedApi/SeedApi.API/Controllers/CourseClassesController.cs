@@ -98,14 +98,25 @@ public class CourseClassesController(
     if (!isTeacher)
       return Forbid();
 
-    var classStart = request.StartTimestamp.Date;
-    var classEnd = request.StartTimestamp.Date.AddMinutes(request.DurationMinutes);
+    var classStart = request.StartTimestamp;
+    var classEnd = request.StartTimestamp.AddMinutes(request.DurationMinutes);
     var courseStart = course.StartDate.ToDateTime(TimeOnly.MinValue);
     var courseEnd = course.EndDate.ToDateTime(TimeOnly.MaxValue);
 
-    if (request.StartTimestamp < courseStart || classEnd > courseEnd)
+    if (classStart < courseStart || classEnd > courseEnd)
     {
       return BadRequest(new ErrorResponse { Message = "A aula deve estar dentro do período do curso." });
+    }
+
+    // Validação de conflito de horário de aula
+    var existingClasses = await _classService.ListClassesByCourseAsync(courseId);
+    bool hasConflict = existingClasses.Any(c =>
+      (classStart < c.StartTimestamp.AddMinutes(c.DurationMinutes)) &&
+      (classEnd > c.StartTimestamp)
+    );
+    if (hasConflict)
+    {
+      return BadRequest(new ErrorResponse { Message = "Já existe uma aula nesse intervalo de tempo para este curso." });
     }
 
     var newClass = new Class
