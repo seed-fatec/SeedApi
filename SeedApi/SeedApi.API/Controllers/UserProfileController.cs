@@ -66,6 +66,10 @@ public sealed class UserProfileController(UserService userService) : ControllerB
     if (user == null)
       return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
 
+    var existingUser = await _userService.GetUserByEmailAsync(request.Email, ignoreQueryFilters: true);
+    if (existingUser != null && existingUser.Id != user.Id)
+      return Conflict(new ErrorResponse { Message = "E-mail já cadastrado para outro usuário." });
+
     var success = await _userService.UpdateUserAsync(user.Id, request);
 
     if (!success)
