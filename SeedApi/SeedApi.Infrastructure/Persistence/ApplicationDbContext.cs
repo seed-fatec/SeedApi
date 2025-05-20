@@ -12,6 +12,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
   public DbSet<Course> Courses { get; set; }
   public DbSet<RefreshToken> RefreshTokens { get; set; }
   public DbSet<AdminRefreshToken> AdminRefreshTokens { get; set; }
+  public DbSet<Class> Classes { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -23,6 +24,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     modelBuilder.Entity<RefreshToken>().HasQueryFilter(rt => rt.User != null && rt.User.DeletedAt == null);
     modelBuilder.Entity<AdminRefreshToken>().HasQueryFilter(rt => rt.Admin != null && rt.Admin.DeletedAt == null);
     modelBuilder.Entity<Course>().HasQueryFilter(c => c.DeletedAt == null);
+    modelBuilder.Entity<Class>().HasQueryFilter(c => c.Course != null && c.DeletedAt == null);
 
     // Configuração de relacionamentos
     modelBuilder.Entity<Course>()
