@@ -56,6 +56,15 @@ public class CourseService(IPersistenceContext context)
     return teacher?.TaughtCourses.ToList() ?? [];
   }
 
+  public async Task<List<Course>> ListCoursesByStudentAsync(int studentId)
+  {
+    var student = await _context.Users
+      .Include(u => u.EnrolledCourses)
+      .FirstOrDefaultAsync(u => u.Id == studentId);
+
+    return student?.EnrolledCourses.ToList() ?? [];
+  }
+
   public async Task<bool> EnrollStudentInCourseAsync(int courseId, User student)
   {
     var course = await _context.Courses

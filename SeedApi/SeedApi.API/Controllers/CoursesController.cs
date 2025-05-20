@@ -247,4 +247,64 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       Users = [.. students]
     });
   }
+
+  [HttpGet("taught")]
+  [Authorize]
+  [RequireRole(UserRole.Teacher)]
+  [ProducesResponseType<CourseCollectionResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> ListTaughtCourses()
+  {
+    var user = await _userService.GetAuthenticatedUserAsync(User);
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var courses = await _courseService.ListCoursesByTeacherAsync(user.Id);
+    var response = new CourseCollectionResponse
+    {
+      Courses = [.. courses.Select(c => new CourseResponse
+      {
+        Id = c.Id,
+        Name = c.Name,
+        Description = c.Description,
+        Price = c.Price,
+        MaxCapacity = c.MaxCapacity,
+        StartDate = c.StartDate,
+        EndDate = c.EndDate,
+        CreatedAt = c.CreatedAt,
+        UpdatedAt = c.UpdatedAt
+      })]
+    };
+    return Ok(response);
+  }
+
+  [HttpGet("enrolled")]
+  [Authorize]
+  [RequireRole(UserRole.Student)]
+  [ProducesResponseType<CourseCollectionResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  public async Task<IActionResult> ListEnrolledCourses()
+  {
+    var user = await _userService.GetAuthenticatedUserAsync(User);
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var enrolledCourses = await _courseService.ListCoursesByStudentAsync(user.Id);
+    var response = new CourseCollectionResponse
+    {
+      Courses = [.. enrolledCourses.Select(c => new CourseResponse
+      {
+        Id = c.Id,
+        Name = c.Name,
+        Description = c.Description,
+        Price = c.Price,
+        MaxCapacity = c.MaxCapacity,
+        StartDate = c.StartDate,
+        EndDate = c.EndDate,
+        CreatedAt = c.CreatedAt,
+        UpdatedAt = c.UpdatedAt
+      })]
+    };
+    return Ok(response);
+  }
 }
