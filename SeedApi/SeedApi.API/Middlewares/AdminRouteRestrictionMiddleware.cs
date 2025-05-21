@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace SeedApi.API.Middlewares;
@@ -16,6 +17,14 @@ public class AdminRouteRestrictionMiddleware(RequestDelegate next)
       return;
     }
 
+    var authorize = endpoint.Metadata.GetMetadata<AuthorizeAttribute>();
+
+    if (authorize == null)
+    {
+      await _next(context);
+      return;
+    }
+
     var token = context.Request.Headers.Authorization.FirstOrDefault()?.Split(' ').Last();
 
     if (string.IsNullOrEmpty(token))
@@ -25,7 +34,17 @@ public class AdminRouteRestrictionMiddleware(RequestDelegate next)
     }
 
     var handler = new JwtSecurityTokenHandler();
-    var jwtToken = handler.ReadJwtToken(token);
+    JwtSecurityToken jwtToken;
+    try
+    {
+      jwtToken = handler.ReadJwtToken(token);
+    }
+    catch (Exception)
+    {
+      context.Response.StatusCode = 401;
+      await context.Response.WriteAsJsonAsync(new { message = "Token JWT ausente ou mal formatado." });
+      return;
+    }
     var roles = jwtToken?.Claims
         .Where(c => c.Type == "role")
         .Select(c => c.Value)

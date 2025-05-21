@@ -99,12 +99,12 @@ if (app.Environment.IsDevelopment())
   });
 }
 
-app.UseMiddleware<AdminRouteRestrictionMiddleware>();
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<AdminRouteRestrictionMiddleware>();
 
 app.MapControllers();
 
