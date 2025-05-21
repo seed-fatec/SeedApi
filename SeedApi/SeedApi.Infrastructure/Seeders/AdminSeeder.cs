@@ -3,20 +3,19 @@ using SeedApi.Infrastructure.Persistence;
 using SeedApi.Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using SeedApi.Infrastructure.Config;
 
 namespace SeedApi.Infrastructure.Seeders;
 
-public class AdminSeeder(ApplicationDbContext context, IConfiguration configuration)
+public class AdminSeeder(ApplicationDbContext context, Configuration configuration)
 {
   private readonly ApplicationDbContext _context = context;
-  private readonly IConfiguration _configuration = configuration;
+  private readonly Configuration _configuration = configuration;
 
   public async Task SeedAsync()
   {
-    var email = _configuration["Admin:Email"] ?? "admin@email.com";
-    var password = _configuration["Admin:Password"] ?? "admin";
-
+    var email = _configuration.AdminSettings.Email;
+    var password = _configuration.AdminSettings.Password;
     await RegisterOrUpdateAdminAsync(email, password);
   }
 

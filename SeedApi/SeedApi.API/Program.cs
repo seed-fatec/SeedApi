@@ -6,6 +6,7 @@ using SeedApi.API.Middlewares;
 using SeedApi.Application.Interfaces;
 using SeedApi.Application.Services;
 using SeedApi.Domain.Configuration;
+using SeedApi.Infrastructure.Config;
 using SeedApi.Infrastructure.OpenApi;
 using SeedApi.Infrastructure.Persistence;
 using SeedApi.Infrastructure.Seeders;
@@ -22,13 +23,10 @@ builder.Services.Configure<JwtSettings>(
   builder.Configuration.GetSection("JwtSettings")
 );
 
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
-  ?? throw new Exception("Failed to load JwtSettings from environment.");
+builder.Services.AddSingleton(sp => new Configuration(builder.Configuration));
 
-var databaseSettings = builder.Configuration.GetSection("DatabaseSettings").Get<DatabaseSettings>()
-  ?? throw new Exception("Failed to load DatabaseSettings from environment.");
-
-var jwtSecretKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
+var configuration = new Configuration(builder.Configuration);
+var jwtSecretKey = Encoding.ASCII.GetBytes(configuration.JwtSettings.Secret);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
   .AddJwtBearer(options =>
@@ -40,15 +38,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
       ValidateIssuerSigningKey = true,
       IssuerSigningKey = new SymmetricSecurityKey(jwtSecretKey),
       ValidateIssuer = true,
-      ValidIssuer = jwtSettings.Issuer,
+      ValidIssuer = configuration.JwtSettings.Issuer,
       ValidateAudience = true,
-      ValidAudience = jwtSettings.Audience,
+      ValidAudience = configuration.JwtSettings.Audience,
       ValidateLifetime = true
     };
   });
 
 builder.Services.AddDbContext<IPersistenceContext, ApplicationDbContext>(options =>
-  options.UseMySql(databaseSettings.ConnectionString, ServerVersion.AutoDetect(databaseSettings.ConnectionString))
+  options.UseMySql(configuration.DatabaseSettings.ConnectionString, ServerVersion.AutoDetect(configuration.DatabaseSettings.ConnectionString))
 );
 
 builder.Services.AddScoped<AuthService>();
