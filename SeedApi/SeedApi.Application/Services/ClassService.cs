@@ -40,4 +40,10 @@ public class ClassService(IPersistenceContext context)
     await _context.SaveChangesAsync();
     return true;
   }
+
+  public async Task UpdateClassAsync(Class classEntity)
+  {
+    _context.Classes.Update(classEntity);
+    await _context.SaveChangesAsync();
+  }
 }

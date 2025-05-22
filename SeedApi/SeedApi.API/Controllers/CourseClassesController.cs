@@ -169,4 +169,55 @@ public class CourseClassesController(
     await _classService.DeleteClassAsync(classId);
     return NoContent();
   }
+
+  [HttpPut("{classId:int}")]
+  [Authorize]
+  [RequireRole(UserRole.Teacher)]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  public async Task<IActionResult> UpdateClass(int courseId, int classId, [FromBody] ClassUpdateRequest request)
+  {
+    var user = await _userService.GetAuthenticatedUserAsync(User);
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var course = await _courseService.GetCourseByIdAsync(courseId);
+    if (course == null)
+      return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
+
+    var isTeacher = await _teacherService.IsTeacherInCourseAsync(user.Id, courseId);
+    if (!isTeacher)
+      return Forbid();
+
+    var classEntity = await _classService.GetClassByIdAsync(classId);
+    if (classEntity == null || classEntity.CourseId != courseId)
+      return NotFound(new ErrorResponse { Message = "Aula não encontrada para este curso." });
+
+    // Validação de datas
+    var newStart = request.StartTimestamp;
+    var newEnd = request.StartTimestamp.AddMinutes(classEntity.DurationMinutes);
+    var courseStart = course.StartDate.ToDateTime(TimeOnly.MinValue);
+    var courseEnd = course.EndDate.ToDateTime(TimeOnly.MaxValue);
+    if (newStart < courseStart || newEnd > courseEnd)
+      return BadRequest(new ErrorResponse { Message = "A aula deve estar dentro do período do curso." });
+
+    // Validação de conflito de horário de aula
+    var existingClasses = await _classService.ListClassesByCourseAsync(courseId);
+    bool hasConflict = existingClasses.Any(c =>
+      c.Id != classId &&
+      newStart < c.StartTimestamp.AddMinutes(c.DurationMinutes) &&
+      newEnd > c.StartTimestamp
+    );
+    if (hasConflict)
+      return BadRequest(new ErrorResponse { Message = "Já existe uma aula nesse intervalo de tempo para este curso." });
+
+    classEntity.Name = request.Name;
+    classEntity.Description = request.Description;
+    classEntity.StartTimestamp = request.StartTimestamp;
+    await _classService.UpdateClassAsync(classEntity);
+    return NoContent();
+  }
 }
