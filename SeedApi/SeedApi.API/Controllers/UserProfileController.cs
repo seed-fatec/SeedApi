@@ -45,6 +45,7 @@ public sealed class UserProfileController(UserService userService) : ControllerB
     {
       Id = user.Id,
       Name = user.Name,
+      Biography = user.Biography,
       Role = user.Role,
       BirthDate = user.BirthDate,
       Email = user.Email,

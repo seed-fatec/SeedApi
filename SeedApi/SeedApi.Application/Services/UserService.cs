@@ -42,6 +42,7 @@ public class UserService(IPersistenceContext context)
 
     user.Name = newUser.Name;
     user.Email = newUser.Email;
+    user.Biography = newUser.Biography;
     user.BirthDate = newUser.BirthDate;
 
     await _context.SaveChangesAsync();

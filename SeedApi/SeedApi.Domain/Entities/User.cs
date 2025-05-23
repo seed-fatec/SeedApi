@@ -17,6 +17,10 @@ public class User
   [MaxLength(255)]
   public string Email { get; set; } = null!;
 
+  [Required]
+  [MaxLength(500)]
+  public string? Biography { get; set; } = null!;
+
   [DataType(DataType.Date)]
   public DateOnly? BirthDate { get; set; } = null!;
 
