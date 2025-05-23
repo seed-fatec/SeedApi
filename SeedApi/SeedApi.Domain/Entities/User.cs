@@ -19,7 +19,7 @@ public class User
 
   [Required]
   [MaxLength(500)]
-  public string Biography { get; set; } = null!;
+  public string? Biography { get; set; } = null!;
 
   [DataType(DataType.Date)]
   public DateOnly? BirthDate { get; set; } = null!;

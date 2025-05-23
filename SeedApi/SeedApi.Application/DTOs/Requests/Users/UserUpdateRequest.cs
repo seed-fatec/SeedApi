@@ -15,6 +15,10 @@ namespace SeedApi.Application.DTOs.Requests.Users
     [Description("O e-mail do usuário.")]
     public string Email { get; init; } = null!;
 
+    [Description("A bio do usuário.")]
+    [MaxLength(length: 500, ErrorMessage = "A bio do usuário deve ter no máximo 500 caracteres")]
+    public string? Biography { get; init; } = null!;
+
     [Required(ErrorMessage = "A data de nascimento é obrigatória.")]
     [Description("A data de nascimento do usuário.")]
     [JsonPropertyName("birth_date")]
