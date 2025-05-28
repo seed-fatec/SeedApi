@@ -15,8 +15,7 @@ namespace SeedApi.Infrastructure.Persistence.Migrations
                 table: "Users",
                 type: "varchar(500)",
                 maxLength: 500,
-                nullable: false,
-                defaultValue: "")
+                nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 

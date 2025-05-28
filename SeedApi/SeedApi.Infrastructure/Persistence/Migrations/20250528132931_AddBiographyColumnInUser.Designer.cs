@@ -12,7 +12,7 @@ using SeedApi.Infrastructure.Persistence;
 namespace SeedApi.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250523111801_AddBiographyColumnInUser")]
+    [Migration("20250528132931_AddBiographyColumnInUser")]
     partial class AddBiographyColumnInUser
     {
         /// <inheritdoc />
@@ -235,7 +235,6 @@ namespace SeedApi.Infrastructure.Persistence.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Biography")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
