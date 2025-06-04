@@ -21,6 +21,9 @@ public record CourseResponse
   [JsonPropertyName("end_date")]
   public DateOnly EndDate { get; init; }
 
+  [JsonPropertyName("remaining_vacancies")]
+  public int RemainingVacancies { get; init; }
+
   [JsonPropertyName("created_at")]
   public DateTime CreatedAt { get; init; }
 

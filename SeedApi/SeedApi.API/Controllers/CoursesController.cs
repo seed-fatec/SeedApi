@@ -38,13 +38,16 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
     {
       Courses = [.. courses.Select(c => new CourseResponse
       {
-        Id = c.Id,
-        Name = c.Name,
-        Description = c.Description,
-        Price = c.Price,
-        MaxCapacity = c.MaxCapacity,
-        StartDate = c.StartDate,
-        EndDate = c.EndDate
+        Id = c.course.Id,
+        Name = c.course.Name,
+        Description = c.course.Description,
+        Price = c.course.Price,
+        MaxCapacity = c.course.MaxCapacity,
+        StartDate = c.course.StartDate,
+        EndDate = c.course.EndDate,
+        RemainingVacancies = (int)c.course.MaxCapacity - c.studentCount,
+        CreatedAt = c.course.CreatedAt,
+        UpdatedAt = c.course.UpdatedAt        
       })]
     };
 
@@ -106,6 +109,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
     if (course == null)
       return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
 
+    var studentCount = await _courseService.GetStudentCountAsync(id);
     return Ok(new CourseResponse
     {
       Id = course.Id,
@@ -115,6 +119,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       MaxCapacity = course.MaxCapacity,
       StartDate = course.StartDate,
       EndDate = course.EndDate,
+      RemainingVacancies = (int)course.MaxCapacity - studentCount,
       CreatedAt = course.CreatedAt,
       UpdatedAt = course.UpdatedAt
     });
