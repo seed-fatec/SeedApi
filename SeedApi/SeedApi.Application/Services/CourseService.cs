@@ -8,9 +8,13 @@ public class CourseService(IPersistenceContext context)
 {
   private readonly IPersistenceContext _context = context;
 
-  public async Task<List<Course>> ListAllCoursesAsync()
+  public async Task<List<(Course course, int studentCount)>> ListAllCoursesAsync()
   {
-    return await _context.Courses.ToListAsync();
+    var coursesWithCounts = await _context.Courses
+      .Select(c => new { Course = c, StudentCount = c.Students.Count })
+      .ToListAsync();
+
+    return [.. coursesWithCounts.Select(x => (x.Course, x.StudentCount))];
   }
 
   public async Task<Course?> GetCourseByIdAsync(int courseId)
@@ -96,5 +100,13 @@ public class CourseService(IPersistenceContext context)
       .FirstOrDefaultAsync(c => c.Id == courseId);
 
     return course?.Teachers.ToList() ?? [];
+  }
+
+  public async Task<int> GetStudentCountAsync(int courseId)
+  {
+    return await _context.Courses
+      .Where(c => c.Id == courseId)
+      .SelectMany(c => c.Students)
+      .CountAsync();
   }
 }
