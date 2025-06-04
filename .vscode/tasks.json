@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Criar nova migração (input nome)",
+      "type": "shell",
+      "command": "dotnet ef migrations add ${input:MigrationName} --context ApplicationDbContext --project ./SeedApi/SeedApi.Infrastructure --startup-project ./SeedApi/SeedApi.API",
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "Remover última migração",
+      "type": "shell",
+      "command": "dotnet ef migrations remove --context ApplicationDbContext --project ./SeedApi/SeedApi.Infrastructure --startup-project ./SeedApi/SeedApi.API",
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "Atualizar banco de dados",
+      "type": "shell",
+      "command": "dotnet ef database update --project ./SeedApi/SeedApi.Infrastructure --startup-project ./SeedApi/SeedApi.API",
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "Dropar banco de dados",
+      "type": "shell",
+      "command": "dotnet ef database drop --project ./SeedApi/SeedApi.Infrastructure --startup-project ./SeedApi/SeedApi.API --force --no-build",
+      "problemMatcher": ["$msCompile"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "MigrationName",
+      "type": "promptString",
+      "description": "Nome da nova migração"
+    }
+  ]
+}

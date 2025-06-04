@@ -36,6 +36,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
       .HasMany(c => c.Teachers)
       .WithMany(u => u.TaughtCourses)
       .UsingEntity(j => j.ToTable("CourseTeachers"));
+
+    modelBuilder.Entity<Class>()
+      .HasOne(c => c.Course)
+      .WithMany(c => c.Classes)
+      .HasForeignKey(c => c.CourseId)
+      .OnDelete(DeleteBehavior.Restrict);
   }
 
   public override int SaveChanges()
@@ -99,18 +105,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
   {
     foreach (var navigation in entry.Navigations)
     {
-      if (navigation.CurrentValue is IEnumerable<object> relatedEntities)
+      // Só aplica soft delete em coleções ou propriedades de navegação que são filhos
+      // Ignora navegação para o pai (ex: Course de Class)
+      if (navigation.Metadata is not { IsCollection: false, TargetEntityType.ClrType.Name: "Course" })
       {
-        // Para coleções de entidades relacionadas
-        foreach (var relatedEntity in relatedEntities)
+        if (navigation.CurrentValue is IEnumerable<object> relatedEntities)
+        {
+          foreach (var relatedEntity in relatedEntities)
+          {
+            ApplySoftDeleteToEntity(relatedEntity);
+          }
+        }
+        else if (navigation.CurrentValue is object relatedEntity)
         {
           ApplySoftDeleteToEntity(relatedEntity);
         }
-      }
-      else if (navigation.CurrentValue is object relatedEntity)
-      {
-        // Para entidades relacionadas individuais
-        ApplySoftDeleteToEntity(relatedEntity);
       }
     }
   }
