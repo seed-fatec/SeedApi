@@ -19,7 +19,6 @@ namespace SeedApi.Application.DTOs.Requests.Users
     [MaxLength(length: 500, ErrorMessage = "A bio do usuário deve ter no máximo 500 caracteres")]
     public string? Biography { get; init; } = null!;
 
-    [Required(ErrorMessage = "A data de nascimento é obrigatória.")]
     [Description("A data de nascimento do usuário.")]
     [JsonPropertyName("birth_date")]
     public DateOnly? BirthDate { get; init; } = null!;
