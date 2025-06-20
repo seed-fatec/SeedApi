@@ -15,12 +15,16 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<DatabaseSettings>(
-  builder.Configuration.GetSection("DatabaseSettings")
+builder.Services.Configure<MySqlSettings>(
+    builder.Configuration.GetSection("MySqlSettings")
+);
+
+builder.Services.Configure<MongoSettings>(
+    builder.Configuration.GetSection("MongoSettings")
 );
 
 builder.Services.Configure<JwtSettings>(
-  builder.Configuration.GetSection("JwtSettings")
+    builder.Configuration.GetSection("JwtSettings")
 );
 
 builder.Services.AddSingleton(sp => new Configuration(builder.Configuration));
@@ -29,25 +33,32 @@ var configuration = new Configuration(builder.Configuration);
 var jwtSecretKey = Encoding.ASCII.GetBytes(configuration.JwtSettings.Secret);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-  .AddJwtBearer(options =>
-  {
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+    .AddJwtBearer(options =>
     {
-      ValidateIssuerSigningKey = true,
-      IssuerSigningKey = new SymmetricSecurityKey(jwtSecretKey),
-      ValidateIssuer = true,
-      ValidIssuer = configuration.JwtSettings.Issuer,
-      ValidateAudience = true,
-      ValidAudience = configuration.JwtSettings.Audience,
-      ValidateLifetime = true
-    };
-  });
+      options.RequireHttpsMetadata = false;
+      options.SaveToken = true;
+      options.TokenValidationParameters = new TokenValidationParameters
+      {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(jwtSecretKey),
+        ValidateIssuer = true,
+        ValidIssuer = configuration.JwtSettings.Issuer,
+        ValidateAudience = true,
+        ValidAudience = configuration.JwtSettings.Audience,
+        ValidateLifetime = true
+      };
+    });
 
+// Configure MySQL Context
 builder.Services.AddDbContext<IPersistenceContext, ApplicationDbContext>(options =>
-  options.UseMySql(configuration.DatabaseSettings.ConnectionString, ServerVersion.AutoDetect(configuration.DatabaseSettings.ConnectionString))
+    options.UseMySql(
+        configuration.MySqlSettings.ConnectionString,
+        ServerVersion.AutoDetect(configuration.MySqlSettings.ConnectionString)
+    )
 );
+
+// Configure MongoDB Context
+builder.Services.AddSingleton<MongoDbContext>();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();

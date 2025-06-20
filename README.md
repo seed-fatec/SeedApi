@@ -24,14 +24,16 @@
    cd SeedApi
    ```
 
-2. Configure a string de conexão com o banco de dados e outras variáveis seguras:
+2. Configure as variáveis de ambiente necessárias:
 
    **Linux/MacOS:**
 
    ```bash
    export Admin__Email="admin@email.com"
    export Admin__Password="adminpassword"
-   export DatabaseSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
+   export MysqlSettings_ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
+   export MongoSettings_ConnectionString="mongodb://localhost:27017"
+   export MongoSettings_DatabaseName="SeedApiDb"
    export JwtSettings__Issuer="your-issuer"
    export JwtSettings__Audience="your-audience"
    export JwtSettings__Secret="your-super-secret-key-here"
@@ -42,7 +44,9 @@
    ```powershell
    $env:Admin__Email="admin@email.com"
    $env:Admin__Password="adminpassword"
-   $env:DatabaseSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
+   $env:MysqlSettings_ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
+   $env:MongoSettings_ConnectionString="mongodb://localhost:27017"
+   $env:MongoSettings_DatabaseName="SeedApiDb"
    $env:JwtSettings__Issuer="your-issuer"
    $env:JwtSettings__Audience="your-audience"
    $env:JwtSettings__Secret="your-super-secret-key-here"
@@ -53,7 +57,9 @@
    ```cmd
    set Admin__Email=admin@email.com
    set Admin__Password=adminpassword
-   set DatabaseSettings__ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
+   set MysqlSettings_ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
+   set MongoSettings_ConnectionString=mongodb://localhost:27017
+   set MongoSettings_DatabaseName=SeedApiDb
    set JwtSettings__Issuer=your-issuer
    set JwtSettings__Audience=your-audience
    set JwtSettings__Secret=your-super-secret-key-here

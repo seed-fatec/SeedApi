@@ -5,20 +5,27 @@ namespace SeedApi.Infrastructure.Config;
 
 public class Configuration
 {
-  public DatabaseSettings DatabaseSettings { get; }
+  public MySqlSettings MySqlSettings { get; }
+  public MongoSettings MongoSettings { get; }
   public JwtSettings JwtSettings { get; }
   public AdminSettings AdminSettings { get; }
 
   public Configuration(IConfiguration configuration)
   {
-    DatabaseSettings = configuration.GetSection("DatabaseSettings").Get<DatabaseSettings>()
-        ?? throw new Exception("Failed to load DatabaseSettings from environment.");
+    MySqlSettings = configuration.GetSection("MySqlSettings").Get<MySqlSettings>()
+        ?? throw new Exception("Failed to load MySqlSettings from environment.");
+
+    MongoSettings = configuration.GetSection("MongoSettings").Get<MongoSettings>()
+        ?? throw new Exception("Failed to load MongoSettings from environment.");
+
     JwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>()
         ?? throw new Exception("Failed to load JwtSettings from environment.");
+
     AdminSettings = configuration.GetSection("Admin").Get<AdminSettings>()
         ?? throw new Exception("Failed to load Admin Credentials from environment.");
 
-    ValidateSettings(DatabaseSettings);
+    ValidateSettings(MySqlSettings);
+    ValidateSettings(MongoSettings);
     ValidateSettings(JwtSettings);
     ValidateSettings(AdminSettings);
   }
