@@ -1,13 +1,17 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using SeedApi.Application.Interfaces;
 using SeedApi.Domain.Configuration;
+using SeedApi.Domain.Entities;
 
 namespace SeedApi.Infrastructure.Persistence;
 
-public class MongoDbContext
+public class MongoDbContext : IMongoContext
 {
   private readonly IMongoDatabase _database;
   private readonly MongoClient _mongoClient;
+
+  public IMongoCollection<Message> Messages => _database.GetCollection<Message>("Messages");
 
   public MongoDbContext(IOptions<MongoSettings> settings)
   {

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.SignalR;
+using SeedApi.API.Hubs;
 using Scalar.AspNetCore;
 using SeedApi.API.Middlewares;
 using SeedApi.Application.Interfaces;
@@ -47,6 +49,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidAudience = configuration.JwtSettings.Audience,
         ValidateLifetime = true
       };
+      options.Events = new JwtBearerEvents
+      {
+        OnMessageReceived = context =>
+        {
+          var path = context.HttpContext.Request.Path;
+          var accessToken = context.Request.Query["access_token"];
+          if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub/notifications"))
+          {
+            context.Token = accessToken;
+          }
+          return Task.CompletedTask;
+        }
+      };
     });
 
 // Configure MySQL Context
@@ -59,6 +74,7 @@ builder.Services.AddDbContext<IPersistenceContext, ApplicationDbContext>(options
 
 // Configure MongoDB Context
 builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddScoped<IMongoContext, MongoDbContext>();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
@@ -67,6 +83,8 @@ builder.Services.AddScoped<StudentService>();
 builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<ClassService>();
 builder.Services.AddScoped<AdminSeeder>();
+builder.Services.AddScoped<MessageService>();
+builder.Services.AddSignalR();
 
 builder.Services.AddControllers()
   .AddJsonOptions(options =>
@@ -118,6 +136,8 @@ app.UseAuthorization();
 app.UseMiddleware<AdminRouteRestrictionMiddleware>();
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/hub/notifications").RequireAuthorization();
 
 using (var scope = app.Services.CreateScope())
 {
