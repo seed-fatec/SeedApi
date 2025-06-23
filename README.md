@@ -31,8 +31,8 @@
    ```bash
    export Admin__Email="admin@email.com"
    export Admin__Password="adminpassword"
-   export MySqlSettings_ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
-   export MongoSettings_ConnectionString="mongodb://localhost:27017"
+   export MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
+   export MongoSettings__ConnectionString="mongodb://localhost:27017"
    export MongoSettings_DatabaseName="SeedApiDb"
    export JwtSettings__Issuer="your-issuer"
    export JwtSettings__Audience="your-audience"
@@ -45,8 +45,8 @@
    ```powershell
    $env:Admin__Email="admin@email.com"
    $env:Admin__Password="adminpassword"
-   $env:MySqlSettings_ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
-   $env:MongoSettings_ConnectionString="mongodb://localhost:27017"
+   $env:MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
+   $env:MongoSettings__ConnectionString="mongodb://localhost:27017"
    $env:MongoSettings_DatabaseName="SeedApiDb"
    $env:JwtSettings__Issuer="your-issuer"
    $env:JwtSettings__Audience="your-audience"
@@ -59,8 +59,8 @@
    ```cmd
    set Admin__Email=admin@email.com
    set Admin__Password=adminpassword
-   set MySqlSettings_ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
-   set MongoSettings_ConnectionString=mongodb://localhost:27017
+   set MySqlSettings__ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
+   set MongoSettings__ConnectionString=mongodb://localhost:27017
    set MongoSettings_DatabaseName=SeedApiDb
    set JwtSettings__Issuer=your-issuer
    set JwtSettings__Audience=your-audience
