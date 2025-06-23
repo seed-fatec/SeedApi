@@ -36,7 +36,8 @@
    export MongoSettings_DatabaseName="SeedApiDb"
    export JwtSettings__Issuer="your-issuer"
    export JwtSettings__Audience="your-audience"
-   export JwtSettings__Secret="your-super-secret-key-here"
+   export JwtSettings__Secret="your-super-base32str-secret-key-here"
+   export AzureSettings__BlobStorageConnectionString="DefaultEndpointsProtocol=https;AccountName=youraccount;AccountKey=yourkey;EndpointSuffix=core.windows.net"
    ```
 
    **Windows (PowerShell):**
@@ -49,7 +50,8 @@
    $env:MongoSettings_DatabaseName="SeedApiDb"
    $env:JwtSettings__Issuer="your-issuer"
    $env:JwtSettings__Audience="your-audience"
-   $env:JwtSettings__Secret="your-super-secret-key-here"
+   $env:JwtSettings__Secret="your-super-base32str-secret-key-here"
+   $env:AzureSettings__BlobStorageConnectionString="DefaultEndpointsProtocol=https;AccountName=youraccount;AccountKey=yourkey;EndpointSuffix=core.windows.net"
    ```
 
    **Windows (Command Prompt):**
@@ -62,7 +64,8 @@
    set MongoSettings_DatabaseName=SeedApiDb
    set JwtSettings__Issuer=your-issuer
    set JwtSettings__Audience=your-audience
-   set JwtSettings__Secret=your-super-secret-key-here
+   set JwtSettings__Secret=your-super-base32str-secret-key-here
+   set AzureSettings__BlobStorageConnectionString=DefaultEndpointsProtocol=https;AccountName=youraccount;AccountKey=yourkey;EndpointSuffix=core.windows.net
    ```
 
 3. Instale a ferramenta `dotnet ef`:

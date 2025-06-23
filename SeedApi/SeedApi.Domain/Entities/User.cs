@@ -23,6 +23,8 @@ public class User
   [DataType(DataType.Date)]
   public DateOnly? BirthDate { get; set; } = null!;
 
+  public string? AvatarURL { get; set; } = null!;
+
   [Required]
   public string PasswordHash { get; set; } = null!;
 

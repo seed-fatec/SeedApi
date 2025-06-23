@@ -11,6 +11,9 @@ public record UserResponse
   public string Email { get; init; } = null!;
   public UserRole Role { get; init; }
 
+  [JsonPropertyName("avatar_url")]
+  public string? AvatarURL { get; init; }
+
   [JsonPropertyName("birth_date")]
   public DateOnly? BirthDate { get; init; }
 

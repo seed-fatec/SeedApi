@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.SignalR;
 using SeedApi.API.Hubs;
 using Scalar.AspNetCore;
 using SeedApi.API.Middlewares;
@@ -29,7 +28,15 @@ builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings")
 );
 
+builder.Services.Configure<AzureSettings>(builder.Configuration.GetSection("AzureSettings"));
+
 builder.Services.AddSingleton(sp => new Configuration(builder.Configuration));
+
+builder.Services.AddSingleton(sp =>
+{
+  var config = sp.GetRequiredService<IConfiguration>();
+  return config.GetSection("AzureSettings").Get<AzureSettings>()!;
+});
 
 var configuration = new Configuration(builder.Configuration);
 var jwtSecretKey = Encoding.ASCII.GetBytes(configuration.JwtSettings.Secret);

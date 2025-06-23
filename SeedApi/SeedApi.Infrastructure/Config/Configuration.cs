@@ -9,6 +9,7 @@ public class Configuration
   public MongoSettings MongoSettings { get; }
   public JwtSettings JwtSettings { get; }
   public AdminSettings AdminSettings { get; }
+  public AzureSettings AzureSettings { get; }
 
   public Configuration(IConfiguration configuration)
   {
@@ -24,10 +25,14 @@ public class Configuration
     AdminSettings = configuration.GetSection("Admin").Get<AdminSettings>()
         ?? throw new Exception("Failed to load Admin Credentials from environment.");
 
+    AzureSettings = configuration.GetSection("AzureSettings").Get<AzureSettings>()
+        ?? throw new Exception("Failed to load AzureSettings from environment.");
+
     ValidateSettings(MySqlSettings);
     ValidateSettings(MongoSettings);
     ValidateSettings(JwtSettings);
     ValidateSettings(AdminSettings);
+    ValidateSettings(AzureSettings);
   }
 
   private static void ValidateSettings(object settings)

@@ -34,7 +34,10 @@ public sealed class UsersController(UserService userService) : ControllerBase
     {
       Id = u.Id,
       Name = u.Name,
-      BirthDate = u.BirthDate
+      AvatarURL = u.AvatarURL,
+      Biography = u.Biography,
+      Role = u.Role,
+      BirthDate = u.BirthDate,
     });
 
     return Ok(new UserCollectionResponse
@@ -70,6 +73,8 @@ public sealed class UsersController(UserService userService) : ControllerBase
       Name = user.Name,
       Role = user.Role,
       BirthDate = user.BirthDate,
+      AvatarURL = user.AvatarURL,
+      Biography = user.Biography
     });
   }
 }

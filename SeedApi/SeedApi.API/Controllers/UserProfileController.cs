@@ -5,6 +5,7 @@ using SeedApi.Application.DTOs.Responses;
 using SeedApi.Application.DTOs.Responses.Users;
 using SeedApi.Application.Services;
 using SeedApi.Domain.Entities;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -50,7 +51,8 @@ public sealed class UserProfileController(UserService userService) : ControllerB
       BirthDate = user.BirthDate,
       Email = user.Email,
       CreatedAt = user.CreatedAt,
-      UpdatedAt = user.UpdatedAt
+      UpdatedAt = user.UpdatedAt,
+      AvatarURL = user.AvatarURL
     });
   }
 
@@ -100,5 +102,61 @@ public sealed class UserProfileController(UserService userService) : ControllerB
     await _userService.DeleteUserAsync(user.Id);
 
     return NoContent();
+  }
+
+  [HttpPost("avatar")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<IActionResult> UpdateAvatar([FromForm][Required(ErrorMessage = "O Arquivo é obrigatório.")] IFormFile file)
+  {
+    var user = await GetAuthenticated();
+    if (user == null)
+      return Unauthorized(new { message = "Usuário não autorizado." });
+
+    if (file == null || file.Length == 0)
+      return BadRequest(new { message = "Arquivo não enviado." });
+
+    var permittedTypes = new[] { "image/jpeg", "image/png", "image/webp" };
+    if (!permittedTypes.Contains(file.ContentType))
+      return BadRequest(new { message = "Arquivo deve ser uma imagem válida (jpeg, png, webp)." });
+
+    try
+    {
+      var avatarUrl = await _userService.UpdateUserAvatarAsync(user.Id, file);
+      if (avatarUrl == null)
+        return StatusCode(500, new { message = "Falha ao atualizar avatar. Tente novamente mais tarde." });
+      return Ok(new { avatarUrl });
+    }
+    catch
+    {
+      return StatusCode(500, new { message = "Erro inesperado ao atualizar avatar." });
+    }
+  }
+
+  [HttpDelete("avatar")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<IActionResult> RemoveAvatar()
+  {
+    var user = await GetAuthenticated();
+    if (user == null)
+      return Unauthorized(new { message = "Usuário não autorizado." });
+    try
+    {
+      var result = await _userService.RemoveUserAvatarAsync(user.Id);
+      if (!result)
+        return BadRequest(new { message = "Usuário não possui avatar para remover." });
+      return Ok();
+    }
+    catch
+    {
+      return StatusCode(500, new { message = "Erro inesperado ao remover avatar." });
+    }
   }
 }

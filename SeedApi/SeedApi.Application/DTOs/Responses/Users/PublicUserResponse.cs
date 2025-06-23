@@ -12,4 +12,7 @@ public record PublicUserResponse
 
   [JsonPropertyName("birth_date")]
   public DateOnly? BirthDate { get; init; }
+
+  [JsonPropertyName("avatar_url")]
+  public string? AvatarURL { get; init; }
 }
