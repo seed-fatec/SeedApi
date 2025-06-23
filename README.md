@@ -61,7 +61,7 @@
    set Admin__Password=adminpassword
    set MySqlSettings__ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
    set MongoSettings__ConnectionString=mongodb://localhost:27017
-   set MongoSettings_DatabaseName=SeedApiDb
+   set MongoSettings__DatabaseName=SeedApiDb
    set JwtSettings__Issuer=your-issuer
    set JwtSettings__Audience=your-audience
    set JwtSettings__Secret=your-super-base32str-secret-key-here
