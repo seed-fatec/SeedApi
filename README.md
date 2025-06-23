@@ -47,7 +47,7 @@
    $env:Admin__Password="adminpassword"
    $env:MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
    $env:MongoSettings__ConnectionString="mongodb://localhost:27017"
-   $env:MongoSettings_DatabaseName="SeedApiDb"
+   $env:MongoSettings__DatabaseName="SeedApiDb"
    $env:JwtSettings__Issuer="your-issuer"
    $env:JwtSettings__Audience="your-audience"
    $env:JwtSettings__Secret="your-super-base32str-secret-key-here"
