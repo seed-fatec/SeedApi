@@ -1,12 +1,17 @@
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SeedApi.Application.Interfaces;
+using SeedApi.Domain.Configuration;
 using SeedApi.Domain.Entities;
 
 namespace SeedApi.Application.Services;
 
-public class CourseService(IPersistenceContext context)
+public class CourseService(IPersistenceContext context, AzureSettings azureSettings)
 {
   private readonly IPersistenceContext _context = context;
+  private readonly AzureSettings _azureSettings = azureSettings;
 
   public async Task<List<(Course course, int studentCount)>> ListAllCoursesAsync()
   {
@@ -108,5 +113,84 @@ public class CourseService(IPersistenceContext context)
       .Where(c => c.Id == courseId)
       .SelectMany(c => c.Students)
       .CountAsync();
+  }
+
+  /// <summary>
+  /// Atualiza a foto de perfil do usuário usando Azure Blob Storage.
+  /// </summary>
+  public async Task<string?> UpdateCourseAvatarAsync(int courseId, IFormFile avatarFile)
+  {
+    var course = await _context.Courses.FindAsync(courseId);
+    if (course == null || avatarFile == null || avatarFile.Length == 0)
+      return null;
+
+    var connectionString = _azureSettings.BlobStorageConnectionString;
+    var containerName = "courses";
+    var avatarsFolder = "avatars";
+    var fileExt = Path.GetExtension(avatarFile.FileName);
+    var fileName = $"{avatarsFolder}/{Guid.NewGuid()}{fileExt}";
+
+    var blobServiceClient = new BlobServiceClient(connectionString);
+    var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+    await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+    // Remove avatar antigo se existir
+    if (!string.IsNullOrEmpty(course.AvatarURL))
+    {
+      try
+      {
+        var oldUri = new Uri(course.AvatarURL);
+        var oldBlobName = string.Join("", oldUri.Segments.Skip(2)).TrimStart('/');
+        var oldBlobClient = containerClient.GetBlobClient(oldBlobName);
+        await oldBlobClient.DeleteIfExistsAsync();
+      }
+      catch
+      {
+        return null;
+      }
+    }
+
+    var blobClient = containerClient.GetBlobClient(fileName);
+    try
+    {
+      using var stream = avatarFile.OpenReadStream();
+      var uploadOptions = new BlobUploadOptions
+      {
+        HttpHeaders = new BlobHttpHeaders { ContentType = avatarFile.ContentType },
+      };
+      await blobClient.UploadAsync(stream, uploadOptions, cancellationToken: default);
+    }
+    catch
+    {
+      return null;
+    }
+
+    course.AvatarURL = blobClient.Uri.ToString();
+    await _context.SaveChangesAsync();
+    return course.AvatarURL;
+  }
+
+  /// <summary>
+  /// Remove a foto de perfil do usuário do Azure Blob Storage e limpa a coluna AvatarURL.
+  /// </summary>
+  public async Task<bool> RemoveCourseAvatarAsync(int courseId)
+  {
+    var course = await _context.Courses.FindAsync(courseId);
+    if (course == null || string.IsNullOrEmpty(course.AvatarURL))
+      return false;
+
+    var connectionString = _azureSettings.BlobStorageConnectionString;
+    var containerName = "courses";
+    var uri = new Uri(course.AvatarURL);
+    var blobName = uri.Segments.Skip(2).Aggregate("", (a, b) => a + b).TrimStart('/'); // pega avatars/arquivo.ext
+
+    var blobServiceClient = new BlobServiceClient(connectionString);
+    var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+    var blobClient = containerClient.GetBlobClient(blobName);
+    await blobClient.DeleteIfExistsAsync();
+
+    course.AvatarURL = null;
+    await _context.SaveChangesAsync();
+    return true;
   }
 }

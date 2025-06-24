@@ -27,7 +27,7 @@ public class Course
 
   [MaxLength(2000)]
   public string? Description { get; set; }
-
+  public string? AvatarURL { get; set; } = null!;
   public DateTime CreatedAt { get; set; }
   public DateTime? UpdatedAt { get; set; } = null;
   public DateTime? DeletedAt { get; set; }

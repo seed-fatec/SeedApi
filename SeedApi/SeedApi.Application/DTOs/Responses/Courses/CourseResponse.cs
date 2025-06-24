@@ -10,6 +10,9 @@ public record CourseResponse
 
   public string? Description { get; init; } = null!;
 
+  [JsonPropertyName("avatar_url")]
+  public string? AvatarURL { get; set; } = null!;
+
   public uint Price { get; init; }
 
   [JsonPropertyName("max_capacity")]

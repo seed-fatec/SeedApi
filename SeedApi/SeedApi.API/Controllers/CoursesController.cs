@@ -8,6 +8,7 @@ using SeedApi.Application.DTOs.Responses.Courses;
 using SeedApi.Application.Services;
 using SeedApi.Domain.Entities;
 using SeedApi.Application.DTOs.Responses.Users;
+using System.ComponentModel.DataAnnotations;
 
 namespace SeedApi.API.Controllers;
 
@@ -41,13 +42,14 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
         Id = c.course.Id,
         Name = c.course.Name,
         Description = c.course.Description,
+        AvatarURL = c.course.AvatarURL,
         Price = c.course.Price,
         MaxCapacity = c.course.MaxCapacity,
         StartDate = c.course.StartDate,
         EndDate = c.course.EndDate,
         RemainingVacancies = (int)c.course.MaxCapacity - c.studentCount,
         CreatedAt = c.course.CreatedAt,
-        UpdatedAt = c.course.UpdatedAt        
+        UpdatedAt = c.course.UpdatedAt
       })]
     };
 
@@ -85,6 +87,8 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       MaxCapacity = newCourse.MaxCapacity,
       StartDate = newCourse.StartDate,
       EndDate = newCourse.EndDate,
+      AvatarURL = newCourse.AvatarURL,
+      RemainingVacancies = (int)newCourse.MaxCapacity,
       CreatedAt = newCourse.CreatedAt,
       UpdatedAt = newCourse.UpdatedAt
     });
@@ -120,6 +124,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       StartDate = course.StartDate,
       EndDate = course.EndDate,
       RemainingVacancies = (int)course.MaxCapacity - studentCount,
+      AvatarURL = course.AvatarURL,
       CreatedAt = course.CreatedAt,
       UpdatedAt = course.UpdatedAt
     });
@@ -276,6 +281,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
         MaxCapacity = c.MaxCapacity,
         StartDate = c.StartDate,
         EndDate = c.EndDate,
+        AvatarURL = c.AvatarURL,
         CreatedAt = c.CreatedAt,
         UpdatedAt = c.UpdatedAt
       })]
@@ -306,10 +312,90 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
         MaxCapacity = c.MaxCapacity,
         StartDate = c.StartDate,
         EndDate = c.EndDate,
+        AvatarURL = c.AvatarURL,
         CreatedAt = c.CreatedAt,
         UpdatedAt = c.UpdatedAt
       })]
     };
     return Ok(response);
+  }
+
+  [HttpPost("{courseId:int}/avatar")]
+  [Authorize]
+  [RequireRole(UserRole.Teacher)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<IActionResult> UpdateAvatar(int courseId, [FromForm][Required(ErrorMessage = "O Arquivo é obrigatório.")] IFormFile file)
+  {
+    var user = await _userService.GetAuthenticatedUserAsync(User);
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var course = await _courseService.GetCourseByIdAsync(courseId);
+    if (course == null)
+      return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
+
+    var isTeacher = await _teacherService.IsTeacherInCourseAsync(user.Id, courseId);
+    if (!isTeacher)
+      return Forbid();
+
+    if (file == null || file.Length == 0)
+      return BadRequest(new { message = "Arquivo não enviado." });
+
+    var permittedTypes = new[] { "image/jpeg", "image/png", "image/webp" };
+    if (!permittedTypes.Contains(file.ContentType))
+      return BadRequest(new { message = "Arquivo deve ser uma imagem válida (jpeg, png, webp)." });
+
+    try
+    {
+      var avatarUrl = await _courseService.UpdateCourseAvatarAsync(course.Id, file);
+      if (avatarUrl == null)
+        return StatusCode(500, new { message = "Falha ao atualizar avatar. Tente novamente mais tarde." });
+      return Ok(new { avatarUrl });
+    }
+    catch
+    {
+      return StatusCode(500, new { message = "Erro inesperado ao atualizar avatar." });
+    }
+  }
+
+  [HttpDelete("{courseId:int}/avatar")]
+  [Authorize]
+  [RequireRole(UserRole.Teacher)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<IActionResult> RemoveAvatar(int courseId)
+  {
+    var user = await _userService.GetAuthenticatedUserAsync(User);
+    if (user == null)
+      return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
+
+    var course = await _courseService.GetCourseByIdAsync(courseId);
+    if (course == null)
+      return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
+
+    var isTeacher = await _teacherService.IsTeacherInCourseAsync(user.Id, courseId);
+    if (!isTeacher)
+      return Forbid();
+
+    try
+    {
+      var result = await _courseService.RemoveCourseAvatarAsync(course.Id);
+      if (!result)
+        return BadRequest(new { message = "Curso não possui avatar para remover." });
+      return Ok();
+    }
+    catch
+    {
+      return StatusCode(500, new { message = "Erro inesperado ao remover avatar." });
+    }
   }
 }
