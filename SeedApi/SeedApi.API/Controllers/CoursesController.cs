@@ -213,6 +213,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       Id = t.Id,
       Name = t.Name,
       Role = t.Role,
+      AvatarURL = t.AvatarURL,
       BirthDate = t.BirthDate
     });
 
@@ -249,6 +250,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       Id = t.Id,
       Name = t.Name,
       Role = t.Role,
+      AvatarURL = t.AvatarURL,
       BirthDate = t.BirthDate
     });
 
