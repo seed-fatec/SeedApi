@@ -34,7 +34,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
         return Unauthorized(new ErrorResponse { Message = "Usuário não autorizado." });
     }
 
-    var courses = await _courseService.ListAllCoursesAsync();
+    var courses = await _courseService.ListAllCoursesWithTeachersAsync();
     var response = new CourseCollectionResponse
     {
       Courses = [.. courses.Select(c => new CourseResponse
@@ -49,7 +49,16 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
         EndDate = c.course.EndDate,
         RemainingVacancies = (int)c.course.MaxCapacity - c.studentCount,
         CreatedAt = c.course.CreatedAt,
-        UpdatedAt = c.course.UpdatedAt
+        UpdatedAt = c.course.UpdatedAt,
+        Teachers = [.. c.teachers.Select(t => new PublicUserResponse
+        {
+          Id = t.Id,
+          Name = t.Name,
+          Biography = t.Biography,
+          Role = t.Role,
+          BirthDate = t.BirthDate,
+          AvatarURL = t.AvatarURL
+        })]
       })]
     };
 

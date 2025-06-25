@@ -23,6 +23,16 @@ public class CourseService(IPersistenceContext context, IOptions<AzureSettings> 
     return [.. coursesWithCounts.Select(x => (x.Course, x.StudentCount))];
   }
 
+  public async Task<List<(Course course, int studentCount, List<User> teachers)>> ListAllCoursesWithTeachersAsync()
+  {
+    var coursesWithCounts = await _context.Courses
+      .Include(c => c.Teachers)
+      .Select(c => new { Course = c, StudentCount = c.Students.Count, Teachers = c.Teachers.ToList() })
+      .ToListAsync();
+
+    return [.. coursesWithCounts.Select(x => (x.Course, x.StudentCount, x.Teachers))];
+  }
+
   public async Task<Course?> GetCourseByIdAsync(int courseId)
   {
     return await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
