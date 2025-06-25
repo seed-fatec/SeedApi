@@ -285,16 +285,26 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
     {
       Courses = [.. courses.Select(c => new CourseResponse
       {
-        Id = c.Id,
-        Name = c.Name,
-        Description = c.Description,
-        Price = c.Price,
-        MaxCapacity = c.MaxCapacity,
-        StartDate = c.StartDate,
-        EndDate = c.EndDate,
-        AvatarURL = c.AvatarURL,
-        CreatedAt = c.CreatedAt,
-        UpdatedAt = c.UpdatedAt
+        Id = c.course.Id,
+        Name = c.course.Name,
+        Description = c.course.Description,
+        Price = c.course.Price,
+        MaxCapacity = c.course.MaxCapacity,
+        StartDate = c.course.StartDate,
+        EndDate = c.course.EndDate,
+        AvatarURL = c.course.AvatarURL,
+        CreatedAt = c.course.CreatedAt,
+        UpdatedAt = c.course.UpdatedAt,
+        RemainingVacancies = (int)c.course.MaxCapacity - c.studentCount,
+        Teachers = [.. c.course.Teachers.Select(t => new PublicUserResponse
+        {
+          Id = t.Id,
+          Name = t.Name,
+          Biography = t.Biography,
+          Role = t.Role,
+          BirthDate = t.BirthDate,
+          AvatarURL = t.AvatarURL
+        })]
       })]
     };
     return Ok(response);
@@ -316,16 +326,25 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
     {
       Courses = [.. enrolledCourses.Select(c => new CourseResponse
       {
-        Id = c.Id,
-        Name = c.Name,
-        Description = c.Description,
-        Price = c.Price,
-        MaxCapacity = c.MaxCapacity,
-        StartDate = c.StartDate,
-        EndDate = c.EndDate,
-        AvatarURL = c.AvatarURL,
-        CreatedAt = c.CreatedAt,
-        UpdatedAt = c.UpdatedAt
+        Id = c.course.Id,
+        Name = c.course.Name,
+        Description = c.course.Description,
+        Price = c.course.Price,
+        MaxCapacity = c.course.MaxCapacity,
+        StartDate = c.course.StartDate,
+        EndDate = c.course.EndDate,
+        AvatarURL = c.course.AvatarURL,
+        CreatedAt = c.course.CreatedAt,
+        UpdatedAt = c.course.UpdatedAt,
+        Teachers = [.. c.course.Teachers.Select(t => new PublicUserResponse
+        {
+          Id = t.Id,
+          Name = t.Name,
+          Biography = t.Biography,
+          Role = t.Role,
+          BirthDate = t.BirthDate,
+          AvatarURL = t.AvatarURL
+        })]
       })]
     };
     return Ok(response);

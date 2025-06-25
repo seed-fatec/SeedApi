@@ -29,6 +29,7 @@
    **Linux/MacOS:**
 
    ```bash
+   export CorsSettings__FrontEndUrl="http://localhost:5173"
    export Admin__Email="admin@email.com"
    export Admin__Password="adminpassword"
    export MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
@@ -43,6 +44,7 @@
    **Windows (PowerShell):**
 
    ```powershell
+   $env:CorsSettings__FrontEndUrl="http://localhost:5173"
    $env:Admin__Email="admin@email.com"
    $env:Admin__Password="adminpassword"
    $env:MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
@@ -57,6 +59,7 @@
    **Windows (Command Prompt):**
 
    ```cmd
+   set CorsSettings__FrontEndUrl=http://localhost:5173
    set Admin__Email=admin@email.com
    set Admin__Password=adminpassword
    set MySqlSettings__ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
