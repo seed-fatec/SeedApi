@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using SeedApi.Application.DTOs.Responses.Users;
 
 namespace SeedApi.Application.DTOs.Responses.Courses;
 
@@ -32,4 +34,7 @@ public record CourseResponse
 
   [JsonPropertyName("updated_at")]
   public DateTime? UpdatedAt { get; init; }
+
+  [JsonPropertyName("teachers")]
+  public List<PublicUserResponse> Teachers { get; init; } = [];
 }
