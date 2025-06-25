@@ -67,22 +67,26 @@ public class CourseService(IPersistenceContext context, IOptions<AzureSettings> 
     return true;
   }
 
-  public async Task<List<Course>> ListCoursesByTeacherAsync(int teacherId)
+  public async Task<List<(Course course, int studentCount)>> ListCoursesByTeacherAsync(int teacherId)
   {
-    var teacher = await _context.Users
-      .Include(u => u.TaughtCourses)
-      .FirstOrDefaultAsync(u => u.Id == teacherId);
+    var courses = await _context.Courses
+      .Where(c => c.Teachers.Any(t => t.Id == teacherId))
+      .Include(c => c.Teachers)
+      .Select(c => new { Course = c, StudentCount = c.Students.Count })
+      .ToListAsync();
 
-    return teacher?.TaughtCourses.ToList() ?? [];
+    return [.. courses.Select(x => (x.Course, x.StudentCount))];
   }
 
-  public async Task<List<Course>> ListCoursesByStudentAsync(int studentId)
+  public async Task<List<(Course course, int studentCount)>> ListCoursesByStudentAsync(int studentId)
   {
-    var student = await _context.Users
-      .Include(u => u.EnrolledCourses)
-      .FirstOrDefaultAsync(u => u.Id == studentId);
+    var courses = await _context.Courses
+      .Where(c => c.Students.Any(s => s.Id == studentId))
+      .Include(c => c.Teachers)
+      .Select(c => new { Course = c, StudentCount = c.Students.Count })
+      .ToListAsync();
 
-    return student?.EnrolledCourses.ToList() ?? [];
+    return [.. courses.Select(x => (x.Course, x.StudentCount))];
   }
 
   public async Task<bool> EnrollStudentInCourseAsync(int courseId, User student)
