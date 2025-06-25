@@ -58,7 +58,8 @@ public class ChatController(
       {
         await _hubContext.Clients.Client(connId).SendAsync("ReceiveMessage", new
         {
-          fromUserId = sender.Id,
+          authorId = sender.Id,
+          avatarUrl = sender.AvatarURL,
           message
         });
       }
