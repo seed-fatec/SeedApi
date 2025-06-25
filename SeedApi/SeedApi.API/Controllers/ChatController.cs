@@ -59,20 +59,13 @@ public class ChatController(
       {
         await _hubContext.Clients.Client(connId).SendAsync("ReceiveMessage", new
         {
-          sender = new PublicUserResponse
-          {
-            Id = sender.Id,
-            AvatarURL = sender.AvatarURL,
-            Biography = sender.Biography,
-            BirthDate = sender.BirthDate,
-            Name = sender.Name,
-            Role = sender.Role
-          },
+          authorId = sender.Id,
+          avatarUrl = sender.AvatarURL,
           message
         });
       }
     }
-    
+
     return Ok(new { Message = "Mensagem enviada." });
   }
 
