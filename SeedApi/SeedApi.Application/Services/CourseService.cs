@@ -2,16 +2,17 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SeedApi.Application.Interfaces;
 using SeedApi.Domain.Configuration;
 using SeedApi.Domain.Entities;
 
 namespace SeedApi.Application.Services;
 
-public class CourseService(IPersistenceContext context, AzureSettings azureSettings)
+public class CourseService(IPersistenceContext context, IOptions<AzureSettings> azureSettings)
 {
   private readonly IPersistenceContext _context = context;
-  private readonly AzureSettings _azureSettings = azureSettings;
+  private readonly AzureSettings _azureSettings = azureSettings.Value;
 
   public async Task<List<(Course course, int studentCount)>> ListAllCoursesAsync()
   {

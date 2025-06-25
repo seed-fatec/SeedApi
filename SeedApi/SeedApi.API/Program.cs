@@ -16,14 +16,15 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<MySqlSettings>(builder.Configuration.GetSection("MySqlSettings"));
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection("Admin"));
+builder.Services.Configure<AzureSettings>(builder.Configuration.GetSection("AzureSettings"));
+builder.Services.Configure<CorsSettings>(builder.Configuration.GetSection("CorsSettings"));
+
 var configuration = new Configuration(builder.Configuration);
 builder.Services.AddSingleton(sp => configuration);
-
-builder.Services.AddSingleton(sp =>
-{
-  var config = sp.GetRequiredService<IConfiguration>();
-  return config.GetSection("AzureSettings").Get<AzureSettings>()!;
-});
 
 var jwtSecretKey = Encoding.ASCII.GetBytes(configuration.JwtSettings.Secret);
 

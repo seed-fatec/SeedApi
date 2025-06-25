@@ -7,13 +7,14 @@ using Microsoft.AspNetCore.Http;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using SeedApi.Domain.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace SeedApi.Application.Services;
 
-public class UserService(IPersistenceContext context, AzureSettings azureSettings)
+public class UserService(IPersistenceContext context, IOptions<AzureSettings> azureSettings)
 {
   private readonly IPersistenceContext _context = context;
-  private readonly AzureSettings _azureSettings = azureSettings;
+  private readonly AzureSettings _azureSettings = azureSettings.Value;
 
   public async Task<List<User>> GetAllUsersAsync()
   {
