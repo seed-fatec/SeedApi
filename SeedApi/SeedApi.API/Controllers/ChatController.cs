@@ -5,6 +5,7 @@ using SeedApi.API.Hubs;
 using SeedApi.Application.DTOs.Messages;
 using SeedApi.Application.DTOs.Responses;
 using SeedApi.Application.DTOs.Responses.Messages;
+using SeedApi.Application.DTOs.Responses.Users;
 using SeedApi.Application.Services;
 using SeedApi.Domain.Entities;
 
@@ -58,23 +59,25 @@ public class ChatController(
       {
         await _hubContext.Clients.Client(connId).SendAsync("ReceiveMessage", new
         {
+<<<<<<< HEAD
           authorId = sender.Id,
           avatarUrl = sender.AvatarURL,
+=======
+          sender = new PublicUserResponse
+          {
+            Id = sender.Id,
+            AvatarURL = sender.AvatarURL,
+            Biography = sender.Biography,
+            BirthDate = sender.BirthDate,
+            Name = sender.Name,
+            Role = sender.Role
+          },
+>>>>>>> 86990a67afbd6269583c94c3e2807875eb0b4da8
           message
         });
       }
     }
-
-    // Envia confirmação para todas as conexões do remetente
-    foreach (var connId in senderConnections)
-    {
-      await _hubContext.Clients.Client(connId).SendAsync("MessageSent", new
-      {
-        toUserId = id,
-        message = dto.Message
-      });
-    }
-
+    
     return Ok(new { Message = "Mensagem enviada." });
   }
 
