@@ -59,10 +59,6 @@ public class ChatController(
       {
         await _hubContext.Clients.Client(connId).SendAsync("ReceiveMessage", new
         {
-<<<<<<< HEAD
-          authorId = sender.Id,
-          avatarUrl = sender.AvatarURL,
-=======
           sender = new PublicUserResponse
           {
             Id = sender.Id,
@@ -72,7 +68,6 @@ public class ChatController(
             Name = sender.Name,
             Role = sender.Role
           },
->>>>>>> 86990a67afbd6269583c94c3e2807875eb0b4da8
           message
         });
       }
