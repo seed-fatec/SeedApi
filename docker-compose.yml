@@ -1,59 +1,11 @@
 services:
-  db:
-    image: mysql:8.3
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: seed
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
-    environment:
-      - Admin__Email=admin@email.com
-      - Admin__Password=adminpass
-      - MySqlSettings__ConnectionString=Server=db;Port=3306;Uid=root;Pwd=root;Database=seed
-      - MongoSettings__ConnectionString=mongodb://root:root@mongo:27017/seed?authSource=admin
-      - MongoSettings__DatabaseName=seed
-      - JwtSettings__Issuer=http://localhost:8080
-      - JwtSettings__Audience=http://localhost:5173
-      - JwtSettings__Secret=your-super-secret-key-here
-      - AzureSettings__BlobStorageConnectionString=DefaultEndpointsProtocol=https;AccountName=youraccount;AccountKey=yourkey;EndpointSuffix=core.windows.net
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "8081:8080"
+      - "8080:8080"
       - "8443:443"
-    depends_on:
-      db:
-        condition: service_healthy
-      mongo:
-        condition: service_healthy
-
-  mongo:
-    image: mongo:7.0
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-      MONGO_INITDB_DATABASE: seed
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  db_data: {}
-  mongo_data: {}
