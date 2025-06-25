@@ -398,3 +398,13 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# util start script
+start.bat
+start.cmd
+start.sh
+start.ps1
+
+.env
+.env.*
+!.env.example
