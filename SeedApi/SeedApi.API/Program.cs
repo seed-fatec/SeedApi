@@ -16,21 +16,8 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<MySqlSettings>(
-    builder.Configuration.GetSection("MySqlSettings")
-);
-
-builder.Services.Configure<MongoSettings>(
-    builder.Configuration.GetSection("MongoSettings")
-);
-
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("JwtSettings")
-);
-
-builder.Services.Configure<AzureSettings>(builder.Configuration.GetSection("AzureSettings"));
-
-builder.Services.AddSingleton(sp => new Configuration(builder.Configuration));
+var configuration = new Configuration(builder.Configuration);
+builder.Services.AddSingleton(sp => configuration);
 
 builder.Services.AddSingleton(sp =>
 {
@@ -38,7 +25,6 @@ builder.Services.AddSingleton(sp =>
   return config.GetSection("AzureSettings").Get<AzureSettings>()!;
 });
 
-var configuration = new Configuration(builder.Configuration);
 var jwtSecretKey = Encoding.ASCII.GetBytes(configuration.JwtSettings.Secret);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -110,7 +96,7 @@ builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowSeedApp", policy =>
   {
-    policy.WithOrigins("http://localhost:5173")
+    policy.WithOrigins("http://localhost:5173", configuration.CorsSettings.FrontEndUrl)
       .AllowAnyMethod()
       .AllowAnyHeader()
       .AllowCredentials();

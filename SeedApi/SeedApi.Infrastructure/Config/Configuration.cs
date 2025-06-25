@@ -10,6 +10,7 @@ public class Configuration
   public JwtSettings JwtSettings { get; }
   public AdminSettings AdminSettings { get; }
   public AzureSettings AzureSettings { get; }
+  public CorsSettings CorsSettings { get; }
 
   public Configuration(IConfiguration configuration)
   {
@@ -28,11 +29,15 @@ public class Configuration
     AzureSettings = configuration.GetSection("AzureSettings").Get<AzureSettings>()
         ?? throw new Exception("Failed to load AzureSettings from environment.");
 
+    CorsSettings = configuration.GetSection("CorsSettings").Get<CorsSettings>()
+        ?? throw new Exception("Failed to load CorsSettings from environment.");
+
     ValidateSettings(MySqlSettings);
     ValidateSettings(MongoSettings);
     ValidateSettings(JwtSettings);
     ValidateSettings(AdminSettings);
     ValidateSettings(AzureSettings);
+    ValidateSettings(CorsSettings);
   }
 
   private static void ValidateSettings(object settings)
