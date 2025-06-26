@@ -31,7 +31,24 @@ public sealed class StudentsController(UserService userService, StudentService s
     }
 
     var students = await _studentService.GetAllStudentsAsync();
-    
+
+    if (User.IsAdmin())
+    {
+      var studentList = students.Select(s => new UserResponse
+      {
+        Id = s.Id,
+        Name = s.Name,
+        AvatarURL = s.AvatarURL,
+        Biography = s.Biography,
+        Role = s.Role,
+        BirthDate = s.BirthDate,
+        Email = s.Email,
+        CreatedAt = s.CreatedAt,
+        UpdatedAt = s.UpdatedAt
+      });
+      return Ok(new { Users = studentList });
+    }
+
     var safeStudents = students.Select(s => new PublicUserResponse
     {
       Id = s.Id,
@@ -68,6 +85,22 @@ public sealed class StudentsController(UserService userService, StudentService s
 
     if (student == null)
       return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
+
+    if (User.IsAdmin())
+    {
+      return Ok(new UserResponse
+      {
+        Id = student.Id,
+        Name = student.Name,
+        Role = student.Role,
+        BirthDate = student.BirthDate,
+        AvatarURL = student.AvatarURL,
+        Biography = student.Biography,
+        Email = student.Email,
+        CreatedAt = student.CreatedAt,
+        UpdatedAt = student.UpdatedAt
+      });
+    }
 
     return Ok(new PublicUserResponse
     {
