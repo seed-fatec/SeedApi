@@ -97,7 +97,7 @@ builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowSeedApp", policy =>
   {
-    policy.WithOrigins("http://localhost:5173", configuration.CorsSettings.FrontEndUrl)
+    policy.WithOrigins("http://localhost:5173", configuration.CorsSettings.FrontEndUrl, configuration.CorsSettings.AdminFrontEndUrl)
       .AllowAnyMethod()
       .AllowAnyHeader()
       .AllowCredentials();
