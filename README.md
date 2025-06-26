@@ -30,6 +30,7 @@
 
    ```bash
    export CorsSettings__FrontEndUrl="http://localhost:5173"
+   export CorsSettings__AdminFrontEndUrl="http://localhost:5174"
    export Admin__Email="admin@email.com"
    export Admin__Password="adminpassword"
    export MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
@@ -45,6 +46,7 @@
 
    ```powershell
    $env:CorsSettings__FrontEndUrl="http://localhost:5173"
+   $env:CorsSettings__AdminFrontEndUrl="http://localhost:5174"
    $env:Admin__Email="admin@email.com"
    $env:Admin__Password="adminpassword"
    $env:MySqlSettings__ConnectionString="Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb"
@@ -60,6 +62,7 @@
 
    ```cmd
    set CorsSettings__FrontEndUrl=http://localhost:5173
+   set CorsSettings__AdminFrontEndUrl=http://localhost:5174
    set Admin__Email=admin@email.com
    set Admin__Password=adminpassword
    set MySqlSettings__ConnectionString=Server=localhost;Port=3306;Uid=root;Pwd=secret;Database=SeedApiDb
