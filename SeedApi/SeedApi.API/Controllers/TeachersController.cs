@@ -31,15 +31,34 @@ public sealed class TeachersController(UserService userService, TeacherService t
     }
 
     var teachers = await _teacherService.GetAllTeachersAsync();
-    
-    var safeTeachers = teachers.Select(s => new PublicUserResponse
+
+    if (User.IsAdmin())
     {
-      Id = s.Id,
-      Name = s.Name,
-      AvatarURL = s.AvatarURL,
-      Biography = s.Biography,
-      Role = s.Role,
-      BirthDate = s.BirthDate,
+      var teacherList = teachers.Select(s => new UserResponse
+      {
+        Id = s.Id,
+        Name = s.Name,
+        AvatarURL = s.AvatarURL,
+        Biography = s.Biography,
+        Role = s.Role,
+        BirthDate = s.BirthDate,
+        Email = s.Email,
+        CreatedAt = s.CreatedAt,
+        UpdatedAt = s.UpdatedAt
+      });
+
+      // Retorna um objeto anônimo para não quebrar o contrato do UserCollectionResponse
+      return Ok(new { Users = teacherList });
+    }
+
+    var safeTeachers = teachers.Select(t => new PublicUserResponse
+    {
+      Id = t.Id,
+      Name = t.Name,
+      AvatarURL = t.AvatarURL,
+      Biography = t.Biography,
+      Role = t.Role,
+      BirthDate = t.BirthDate
     });
 
     return Ok(new UserCollectionResponse
@@ -68,6 +87,22 @@ public sealed class TeachersController(UserService userService, TeacherService t
 
     if (teacher == null)
       return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
+
+    if (User.IsAdmin())
+    {
+      return Ok(new UserResponse
+      {
+        Id = teacher.Id,
+        Name = teacher.Name,
+        Role = teacher.Role,
+        BirthDate = teacher.BirthDate,
+        AvatarURL = teacher.AvatarURL,
+        Biography = teacher.Biography,
+        Email = teacher.Email,
+        CreatedAt = teacher.CreatedAt,
+        UpdatedAt = teacher.UpdatedAt
+      });
+    }
 
     return Ok(new PublicUserResponse
     {

@@ -123,6 +123,7 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       return NotFound(new ErrorResponse { Message = "Curso não encontrado." });
 
     var studentCount = await _courseService.GetStudentCountAsync(id);
+    var teachers = await _courseService.GetTeachersByCourseIdAsync(id);
     return Ok(new CourseResponse
     {
       Id = course.Id,
@@ -135,7 +136,16 @@ public sealed class CoursesController(CourseService courseService, TeacherServic
       RemainingVacancies = (int)course.MaxCapacity - studentCount,
       AvatarURL = course.AvatarURL,
       CreatedAt = course.CreatedAt,
-      UpdatedAt = course.UpdatedAt
+      UpdatedAt = course.UpdatedAt,
+      Teachers = [.. teachers.Select(t => new PublicUserResponse
+      {
+        Id = t.Id,
+        Name = t.Name,
+        Biography = t.Biography,
+        Role = t.Role,
+        BirthDate = t.BirthDate,
+        AvatarURL = t.AvatarURL
+      })]
     });
   }
 
