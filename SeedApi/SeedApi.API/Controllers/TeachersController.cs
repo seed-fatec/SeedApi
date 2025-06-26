@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SeedApi.API.Extensions;
 using SeedApi.API.Middlewares;
 using SeedApi.Application.DTOs.Responses;
+using SeedApi.Application.DTOs.Responses.Courses;
 using SeedApi.Application.DTOs.Responses.Users;
 using SeedApi.Application.Services;
 
@@ -10,10 +11,11 @@ namespace SeedApi.API.Controllers;
 
 [ApiController]
 [Route("api/teachers")]
-public sealed class TeachersController(UserService userService, TeacherService teacherService) : ControllerBase
+public sealed class TeachersController(UserService userService, TeacherService teacherService, CourseService courseService) : ControllerBase
 {
   private readonly UserService _userService = userService;
   private readonly TeacherService _teacherService = teacherService;
+  private readonly CourseService _courseService = courseService;
 
   [HttpGet(Name = "GetTeachers")]
   [Authorize]
@@ -113,5 +115,46 @@ public sealed class TeachersController(UserService userService, TeacherService t
       AvatarURL = teacher.AvatarURL,
       Biography = teacher.Biography
     });
+  }
+
+  [HttpGet("{id:int}/courses")]
+  [Authorize]
+  [AllowAdmin]
+  [ProducesResponseType<CourseCollectionResponse>(StatusCodes.Status200OK)]
+  [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> GetTeacherCourses(int id)
+  {
+    var teacher = await _teacherService.GetTeacherByIdAsync(id);
+    if (teacher == null)
+      return NotFound(new ErrorResponse { Message = "Usuário não encontrado." });
+
+    var courses = await _courseService.ListCoursesByTeacherAsync(id);
+    var response = new CourseCollectionResponse
+    {
+      Courses = [.. courses.Select(c => new CourseResponse
+      {
+        Id = c.course.Id,
+        Name = c.course.Name,
+        Description = c.course.Description,
+        Price = c.course.Price,
+        MaxCapacity = c.course.MaxCapacity,
+        StartDate = c.course.StartDate,
+        EndDate = c.course.EndDate,
+        AvatarURL = c.course.AvatarURL,
+        RemainingVacancies = (int)c.course.MaxCapacity - c.studentCount,
+        CreatedAt = c.course.CreatedAt,
+        UpdatedAt = c.course.UpdatedAt,
+        Teachers = [.. c.course.Teachers.Select(t => new PublicUserResponse
+        {
+          Id = t.Id,
+          Name = t.Name,
+          Biography = t.Biography,
+          Role = t.Role,
+          BirthDate = t.BirthDate,
+          AvatarURL = t.AvatarURL
+        })]
+      })]
+    };
+    return Ok(response);
   }
 }
